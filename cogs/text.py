@@ -60,8 +60,6 @@ def zalgo(text: str) -> str:
         for c in text
     )
 
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
 class Text(commands.GroupCog, group_name="text"):
     def __init__(self, bot):
         self.bot = bot
@@ -85,9 +83,7 @@ class Text(commands.GroupCog, group_name="text"):
 
     group_1 = app_commands.Group(
         name="1",
-        description="Text - page 1",
-        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
-        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
+        description="Text - page 1"
     )
 
     @group_1.command(

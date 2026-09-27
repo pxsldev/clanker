@@ -14,14 +14,10 @@ import asyncio
 import random
 from cogs.theming import get_fail_colour, get_success_colour
 
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
 class Video(commands.GroupCog, group_name="video"):
     video_1 = app_commands.Group(
         name="1",
-        description="Video - page 1",
-        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
-        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
+        description="Video - page 1"
     )
 
     MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024

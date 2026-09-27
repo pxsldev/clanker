@@ -29,9 +29,6 @@ class ClickerView(discord.ui.View):
         self.click_button.label = f"🖱️ Clicks: {click_count}"
         await interaction.response.edit_message(view=self)
 
-
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
 class Social(commands.GroupCog, group_name="social"):
     def __init__(self, bot):
         self.bot = bot
@@ -180,9 +177,7 @@ class Social(commands.GroupCog, group_name="social"):
 
     group_1 = app_commands.Group(
         name="1",
-        description="Social - page 1",
-        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
-        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
+        description="Social - page 1"
     )
 
     @group_1.command(

@@ -268,18 +268,14 @@ class WordleModal(discord.ui.Modal, title="Make a guess"):
             embed=self.game.get_embed(),
             view=self.game
         )
-
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
+        
 class Games(commands.GroupCog, group_name="games"):
     def __init__(self, bot):
         self.bot = bot
 
     group_1 = app_commands.Group(
         name="1",
-        description="Games - page 1",
-        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
-        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
+        description="Games - page 1"
     )
 
     @group_1.command(

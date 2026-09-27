@@ -31,8 +31,6 @@ class WelcomeView(discord.ui.View):
             )
         )
 
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
 class Basic(commands.GroupCog, group_name="basic"):
     def __init__(self, bot):
         self.bot = bot
@@ -40,9 +38,7 @@ class Basic(commands.GroupCog, group_name="basic"):
 
     group_1 = app_commands.Group(
         name="1",
-        description="Basic - page 1",
-        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
-        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
+        description="Basic - page 1"
     )
 
     @group_1.command(
