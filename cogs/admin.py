@@ -18,6 +18,8 @@ def owner_check():
 
     return app_commands.check(predicate)
 
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 class Admin(commands.GroupCog, group_name="admin"):
     def __init__(self, bot):
         self.bot = bot
@@ -28,23 +30,15 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     group_1 = app_commands.Group(
         name="1",
-        description="Admin - page 1"
+        description="Admin - page 1",
+        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
+        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
     )
-
     @group_1.command(
         name="addadmin",
         description="(OWNER) give someone admin"
     )
     @owner_check()
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def addadmin(
         self,
         interaction: Interaction,
@@ -77,15 +71,6 @@ class Admin(commands.GroupCog, group_name="admin"):
         description="(OWNER) remove admin"
     )
     @owner_check()
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def removeadmin(
         self,
         interaction: Interaction,
@@ -118,15 +103,6 @@ class Admin(commands.GroupCog, group_name="admin"):
         description="(OWNER) list admins"
     )
     @owner_check()
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def listadmins(
         self,
         interaction: Interaction
@@ -347,15 +323,6 @@ class Admin(commands.GroupCog, group_name="admin"):
         description="(OWNER) DM a user"
     )
     @owner_check()
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def dm(
         self,
         interaction: Interaction,
@@ -396,15 +363,6 @@ class Admin(commands.GroupCog, group_name="admin"):
         description="(OWNER/ADMIN) list all bot servers"
     )
     @owner_check()
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def servers(
         self,
         interaction: Interaction
@@ -498,15 +456,6 @@ class Admin(commands.GroupCog, group_name="admin"):
         description="(OWNER/ADMIN) View current CCU"
     )
     @owner_check()
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def ccu(
         self,
         interaction: Interaction

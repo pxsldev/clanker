@@ -31,6 +31,8 @@ class WelcomeView(discord.ui.View):
             )
         )
 
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 class Basic(commands.GroupCog, group_name="basic"):
     def __init__(self, bot):
         self.bot = bot
@@ -38,21 +40,14 @@ class Basic(commands.GroupCog, group_name="basic"):
 
     group_1 = app_commands.Group(
         name="1",
-        description="Basic - page 1"
+        description="Basic - page 1",
+        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
+        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
     )
 
     @group_1.command(
         name="welcome",
         description="show the Clanker welcome message"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def welcome(
         self,
@@ -90,15 +85,6 @@ class Basic(commands.GroupCog, group_name="basic"):
         name="hello",
         description="say hello to the bot"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def hello(
         self,
         interaction: Interaction
@@ -128,15 +114,6 @@ class Basic(commands.GroupCog, group_name="basic"):
         name="ping",
         description="get bot's latency"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def ping(
         self,
         interaction: Interaction
@@ -152,15 +129,6 @@ class Basic(commands.GroupCog, group_name="basic"):
     @group_1.command(
         name="uptime",
         description="how long bot been online"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def uptime(
         self,
@@ -208,15 +176,6 @@ class Basic(commands.GroupCog, group_name="basic"):
         name="usercount",
         description="how many users does Clanker serve"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def usercount(
         self,
         interaction: Interaction
@@ -242,15 +201,6 @@ class Basic(commands.GroupCog, group_name="basic"):
     @group_1.command(
         name="cmdcount",
         description="how many commands Clanker has"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def cmdcount(
         self,
@@ -293,15 +243,6 @@ class Basic(commands.GroupCog, group_name="basic"):
         name="version",
         description="see the bot's version"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def version(
         self,
         interaction: discord.Interaction
@@ -329,15 +270,6 @@ class Basic(commands.GroupCog, group_name="basic"):
     @group_1.command(
         name="info",
         description="view information about Clanker"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def info(
         self,
@@ -409,15 +341,6 @@ class Basic(commands.GroupCog, group_name="basic"):
         name="vote",
         description="vote for the bot on top.gg"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def vote(
         self,
         interaction: discord.Interaction
@@ -444,15 +367,6 @@ class Basic(commands.GroupCog, group_name="basic"):
     @group_1.command(
         name="invite",
         description="get bot invite link"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def invite(
         self,
@@ -483,15 +397,6 @@ class Basic(commands.GroupCog, group_name="basic"):
     @group_1.command(
         name="help",
         description="get help with the bot"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def help(
         self,
@@ -634,15 +539,6 @@ class Basic(commands.GroupCog, group_name="basic"):
         name="credits",
         description="see the people who somehow made Clanker possible"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def credits(
         self,
         interaction: discord.Interaction
@@ -668,15 +564,6 @@ class Basic(commands.GroupCog, group_name="basic"):
     @group_1.command(
         name="thanks",
         description="support the bot and its developer :)"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def thanks(
         self,

@@ -12,12 +12,15 @@ import shutil
 import random
 from cogs.theming import get_fail_colour, get_success_colour
 
-
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 class Images(commands.GroupCog, group_name="image"):
 
     image_1 = app_commands.Group(
         name="1",
-        description="Image - page 1"
+        description="Images - page 1",
+        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
+        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
     )
 
     MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024
@@ -290,15 +293,6 @@ class Images(commands.GroupCog, group_name="image"):
         name="invert",
         description="Invert an image"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def invert(
         self,
         interaction: Interaction,
@@ -334,15 +328,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="greyscale",
         description="Convert an image to greyscale"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def greyscale(
         self,
@@ -380,15 +365,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="deepfry",
         description="Deep fry an image"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def deepfry(
         self,
@@ -440,15 +416,6 @@ class Images(commands.GroupCog, group_name="image"):
         name="blur",
         description="Blur an image"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def blur(
         self,
         interaction: Interaction,
@@ -493,15 +460,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="bloom",
         description="Add bloom effect to an image"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def bloom(
         self,
@@ -551,15 +509,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="pixelate",
         description="Pixelate an image"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def pixelate(
         self,
@@ -621,15 +570,6 @@ class Images(commands.GroupCog, group_name="image"):
         name="gif",
         description="Turn an image into a GIF"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def gif(
         self,
         interaction: Interaction,
@@ -688,15 +628,6 @@ class Images(commands.GroupCog, group_name="image"):
         name="png",
         description="Turn an image into a PNG"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def png(
         self,
         interaction: Interaction,
@@ -732,15 +663,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="jpg",
         description="Turn an image into a JPG"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def jpg(
         self,
@@ -824,15 +746,6 @@ class Images(commands.GroupCog, group_name="image"):
         name="webp",
         description="Turn an image into a WebP"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def webp(
         self,
         interaction: Interaction,
@@ -890,15 +803,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="caption",
         description="Add a caption to an image or GIF"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def caption(
         self,
@@ -1125,15 +1029,6 @@ class Images(commands.GroupCog, group_name="image"):
         name="brighten",
         description="Brighten an image"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def brighten(
         self,
         interaction: Interaction,
@@ -1178,15 +1073,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="darken",
         description="Darken an image"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def darken(
         self,
@@ -1235,15 +1121,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="sharpen",
         description="Sharpen an image"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def sharpen(
         self,
@@ -1294,15 +1171,6 @@ class Images(commands.GroupCog, group_name="image"):
         name="contrast",
         description="Change the contrast of an image"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def contrast(
         self,
         interaction: Interaction,
@@ -1347,15 +1215,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="destroy",
         description="Absolutely destroy an image"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def destroy(
         self,
@@ -1573,15 +1432,6 @@ class Images(commands.GroupCog, group_name="image"):
         name="rotate",
         description="Change the rotation of an image"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def rotate(
         self,
         interaction: Interaction,
@@ -1625,15 +1475,6 @@ class Images(commands.GroupCog, group_name="image"):
     @image_1.command(
         name="flip",
         description="Flip an image"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def flip(
         self,

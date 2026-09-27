@@ -14,11 +14,14 @@ import asyncio
 import random
 from cogs.theming import get_fail_colour, get_success_colour
 
-
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 class Video(commands.GroupCog, group_name="video"):
     video_1 = app_commands.Group(
         name="1",
-        description="Video - page 1"
+        description="Video - page 1",
+        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
+        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
     )
 
     MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024
@@ -630,15 +633,6 @@ class Video(commands.GroupCog, group_name="video"):
         name="invert",
         description="Invert a video"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def invert(
         self,
         interaction: Interaction,
@@ -663,15 +657,6 @@ class Video(commands.GroupCog, group_name="video"):
         name="greyscale",
         description="Convert a video to greyscale"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def greyscale(
         self,
         interaction: Interaction,
@@ -695,15 +680,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="deepfry",
         description="Deep fry a video"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def deepfry(
         self,
@@ -744,15 +720,6 @@ class Video(commands.GroupCog, group_name="video"):
         name="blur",
         description="Blur a video"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def blur(
         self,
         interaction: Interaction,
@@ -784,15 +751,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="bloom",
         description="Add bloom effect to a video"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def bloom(
         self,
@@ -831,15 +789,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="pixelate",
         description="Pixelate a video"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def pixelate(
         self,
@@ -887,15 +836,6 @@ class Video(commands.GroupCog, group_name="video"):
         name="brighten",
         description="Brighten a video"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def brighten(
         self,
         interaction: Interaction,
@@ -927,15 +867,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="darken",
         description="Darken a video"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def darken(
         self,
@@ -971,15 +902,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="sharpen",
         description="Sharpen a video"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def sharpen(
         self,
@@ -1017,15 +939,6 @@ class Video(commands.GroupCog, group_name="video"):
         name="contrast",
         description="Change the contrast of a video"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def contrast(
         self,
         interaction: Interaction,
@@ -1057,15 +970,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="gif",
         description="Turn a video into a GIF"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def gif(
         self,
@@ -1186,15 +1090,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="caption",
         description="Add a caption to a video"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def caption(
         self,
@@ -1465,15 +1360,6 @@ class Video(commands.GroupCog, group_name="video"):
         name="frames",
         description="Extract frames from a video"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def frames(
         self,
         interaction: Interaction,
@@ -1615,15 +1501,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="boomerang",
         description="Create a boomerang from a video"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def boomerang(
         self,
@@ -1808,15 +1685,6 @@ class Video(commands.GroupCog, group_name="video"):
         name="destroy",
         description="Absolutely destroy a video"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def destroy(
         self,
         interaction: Interaction,
@@ -1985,15 +1853,6 @@ class Video(commands.GroupCog, group_name="video"):
         name="rotate",
         description="Change the Rotation of a video"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def rotate(
         self,
         interaction: Interaction,
@@ -2027,15 +1886,6 @@ class Video(commands.GroupCog, group_name="video"):
     @video_1.command(
         name="flip",
         description="Flips a video"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def flip(
         self,

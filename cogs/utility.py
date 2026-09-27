@@ -16,6 +16,8 @@ import whois
 from mathparse import mathparse
 from cogs.theming import get_fail_colour, get_success_colour
 
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 class Utility(commands.GroupCog, group_name="utility"):
     def __init__(self, bot):
         self.bot = bot
@@ -43,21 +45,14 @@ class Utility(commands.GroupCog, group_name="utility"):
 
     group_1 = app_commands.Group(
         name="1",
-        description="Utility - page 1"
+        description="Utility - page 1",
+        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
+        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
     )
 
     @group_1.command(
         name="dadjoke",
         description="random dad joke very funny haha"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def dadjoke(self, interaction: Interaction):
         async with aiohttp.ClientSession() as session:
@@ -79,15 +74,6 @@ class Utility(commands.GroupCog, group_name="utility"):
         name="dog",
         description="i like dog"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def dog(self, interaction: Interaction):
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -107,15 +93,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     @group_1.command(
         name="cat",
         description="i like cat"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def cat(self, interaction: Interaction):
         async with aiohttp.ClientSession() as session:
@@ -137,15 +114,6 @@ class Utility(commands.GroupCog, group_name="utility"):
         name="duck",
         description="i like duck"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def duck(self, interaction: Interaction):
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -165,15 +133,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     @group_1.command(
         name="oliver",
         description="get a random picture of dashcrikeydash's cat"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def oliver(self, interaction: Interaction):
         json_url = "https://dashcrikeydash.github.io/images.json"
@@ -221,15 +180,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         length="Length of the password (4-100)"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def password(
         self,
@@ -281,15 +231,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     @app_commands.describe(
         url="url to qr code-ify"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def qr(
         self,
         interaction: Interaction,
@@ -328,15 +269,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     @app_commands.describe(
         time="time like 10s, 5m, 2h, 1d, 1w",
         message="what should I remind you about"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def remindme(
         self,
@@ -481,15 +413,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         game="steam game name"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def steam(
         self,
@@ -763,15 +686,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     @app_commands.describe(
         username="The GitHub username to look up"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def github(
         self,
         interaction: Interaction,
@@ -868,15 +782,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         query="The movie or TV show to search for"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def imdb(
         self,
@@ -1024,15 +929,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     @app_commands.describe(
         query="The song to search for"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def itunes(
         self,
         interaction: Interaction,
@@ -1130,15 +1026,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         query="The NPM package to look up"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def npm(
         self,
@@ -1244,15 +1131,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         place="The place to check"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def weather(
         self,
@@ -1369,15 +1247,6 @@ class Utility(commands.GroupCog, group_name="utility"):
         target="Target language code (e.g. es, fr, de, ja)",
         source="Source language (auto-detect if omitted)"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def translate(
         self,
         interaction: Interaction,
@@ -1478,15 +1347,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         term="Term to look up"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def urban(
         self,
@@ -1601,15 +1461,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     @app_commands.describe(
         word="Word to define"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def define(
         self,
         interaction: Interaction,
@@ -1697,15 +1548,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         ip="IP address to look up"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def ip(
         self,
@@ -1802,15 +1644,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         domain="Domain to look up"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def dns(
         self,
@@ -1923,15 +1756,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         domain="Domain to look up"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def whois(
         self,
@@ -2048,15 +1872,6 @@ class Utility(commands.GroupCog, group_name="utility"):
         host="Hostname or IP",
         port="Port number"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def portcheck(
         self,
         interaction: Interaction,
@@ -2113,15 +1928,6 @@ class Utility(commands.GroupCog, group_name="utility"):
     )
     @app_commands.describe(
         equation="Equation"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def calculate(
         self,

@@ -60,6 +60,8 @@ def zalgo(text: str) -> str:
         for c in text
     )
 
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 class Text(commands.GroupCog, group_name="text"):
     def __init__(self, bot):
         self.bot = bot
@@ -83,7 +85,9 @@ class Text(commands.GroupCog, group_name="text"):
 
     group_1 = app_commands.Group(
         name="1",
-        description="Text - page 1"
+        description="Text - page 1",
+        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
+        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
     )
 
     @group_1.command(
@@ -92,15 +96,6 @@ class Text(commands.GroupCog, group_name="text"):
     )
     @app_commands.describe(
         text="Text to transform"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def uwu(
         self,
@@ -121,15 +116,6 @@ class Text(commands.GroupCog, group_name="text"):
     @app_commands.describe(
         text="Text to transform"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def caps(
         self,
         interaction: Interaction,
@@ -148,15 +134,6 @@ class Text(commands.GroupCog, group_name="text"):
     )
     @app_commands.describe(
         text="Text to transform"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def lower(
         self,
@@ -177,15 +154,6 @@ class Text(commands.GroupCog, group_name="text"):
     @app_commands.describe(
         text="Text to transform"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def reverse(
         self,
         interaction: Interaction,
@@ -204,15 +172,6 @@ class Text(commands.GroupCog, group_name="text"):
     )
     @app_commands.describe(
         text="Text to transform"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def randomcase(
         self,
@@ -233,15 +192,6 @@ class Text(commands.GroupCog, group_name="text"):
     @app_commands.describe(
         text="Text to transform"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def novowels(
         self,
         interaction: Interaction,
@@ -260,15 +210,6 @@ class Text(commands.GroupCog, group_name="text"):
     )
     @app_commands.describe(
         text="Text to transform"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def snake(
         self,
@@ -289,15 +230,6 @@ class Text(commands.GroupCog, group_name="text"):
     @app_commands.describe(
         text="Text to transform"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def mock_cmd(
         self,
         interaction: Interaction,
@@ -317,15 +249,6 @@ class Text(commands.GroupCog, group_name="text"):
     @app_commands.describe(
         text="Text to transform"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
-    )
     async def leet_cmd(
         self,
         interaction: Interaction,
@@ -344,15 +267,6 @@ class Text(commands.GroupCog, group_name="text"):
     )
     @app_commands.describe(
         text="Text to transform"
-    )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
-    @app_commands.allowed_installs(
-        guilds=True,
-        users=True
     )
     async def zalgo_cmd(
         self,
