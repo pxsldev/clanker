@@ -1278,7 +1278,7 @@ class Social(commands.GroupCog, group_name="social"):
         responses = [
             "rudeeee", 
             "what would you do if", 
-            "https://www.tiktokez.com/@brokenbones1008/video/7689955154241637654", 
+            "https://www.tiktok.com/@brokenbones1008/video/7689955154241637654", 
             "What would you do if when you okay so he said yes would go?", 
             "what who what where", 
             "peatey loves you", 
