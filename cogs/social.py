@@ -1194,5 +1194,112 @@ class Social(commands.GroupCog, group_name="social"):
         await message.add_reaction("✅")
         await message.add_reaction("❌")
 
+    group_2 = app_commands.Group(
+        name="2",
+        description="Social - page 2"
+    )
+
+    @group_2.command(
+        name="isitreallyworthit",
+        description="is it really worth it..."
+    )
+    async def isitreallyworthit(self, interaction: Interaction):
+        valid_iirwi = [
+            "https://cdn.discordapp.com/attachments/1545959140466102303/1553862949137940580/temp_image_83DB0428-2B71-41EB-85ED-26EC83760129.webp",
+            "https://cdn.discordapp.com/attachments/1545959140466102303/1553862949603647508/temp_image_DAFE73C9-EDB9-4117-B2B7-D1036E22B4B6.webp",
+            "https://cdn.discordapp.com/attachments/1545959140466102303/1553862950144442508/temp_image_39AA17E3-51B0-4CC9-92B0-1099AE7B8D8E.webp",
+            "https://cdn.discordapp.com/attachments/1545959140466102303/1553862950593241098/temp_image_729AEFFE-31BC-4D25-80F7-4738669AD7A3.webp",
+            "https://cdn.discordapp.com/attachments/1545959140466102303/1553862951088165005/temp_image_55A0F51A-0851-4828-9233-1EDB877514B8.webp",
+            "https://cdn.discordapp.com/attachments/1545959140466102303/1553862951520444457/temp_image_6242B4E6-85E3-4170-A940-D971C5AD5C73.webp",
+            "https://cdn.discordapp.com/attachments/1545959140466102303/1553862951960576130/temp_image_229D9F74-5B88-48D5-B6A1-73955A233CB4.webp"
+        ]
+        
+        random_url = random.choice(valid_iirwi)
+
+        colour = random.randint(1,2) == 1 and get_success_colour() or get_fail_colour()
+        embed = discord.Embed(
+            title="Is it really worth it... 🐱",
+            color=colour
+        )
+        embed.set_image(url=random_url)
+        
+        await interaction.response.send_message(embed=embed)
+
+    @group_2.command(
+        name="pxslball",
+        description="get a random pxsl response :)"
+    )
+    async def pxsl(
+        self,
+        interaction: Interaction
+    ):
+        responses = [
+            "fuck off",
+            "i am ~~not~~ a skid",
+            "professional idiot • developer • terminal addict",
+            "what is this again?",
+            "i made clanker",
+            "clean code? never heard of her",
+            "welcome to the space",
+            "python • unity • c#",
+            "whats a boolean?",
+            "i break stuff and then fix it",
+            "i literally have no idea what im doing",
+            "your friendly neighborhood skidder since 1995",
+            "what the hell is an api",
+            "i put the 'pro' in 'programmer'",
+            "your sentence of the day is...",
+            "WHAT THE FUCK IS A SEMICOLON",
+            "hey guess what im selling out buy my ko-fi, give me money, throw money at me please",
+            "hey guess what im still selling out https://pxsl.dev/thanks/",
+            "i made a discord bot i guess..."
+        ]
+        
+        embed = discord.Embed(
+            title="pxsldev 💜",
+            description=random.choice(responses),
+            color=get_success_colour()
+        )
+
+        embed.set_footer(
+            text=f"https://pxsl.dev/thanks/ • Clanker"
+        )
+
+        await interaction.response.send_message(embed=embed)
+
+    @group_2.command(
+        name="eautopiball",
+        description="get a random eautopian response :)"
+    )
+    async def eautopian(
+        self,
+        interaction: Interaction
+    ):
+        responses = [
+            "rudeeee", 
+            "what would you do if", 
+            "https://www.tiktokez.com/@brokenbones1008/video/7689955154241637654", 
+            "What would you do if when you okay so he said yes would go?", 
+            "what who what where", 
+            "peatey loves you", 
+            "peatey", 
+            "lamby kins loves you", 
+            "lamby kins",
+            "google is free"
+        ]
+        
+        embed = discord.Embed(
+            title="eautopian 🩵",
+            description=random.choice(responses),
+            color=get_success_colour()
+        )
+
+        embed.set_footer(
+            text=f"By {interaction.user.name} • Clanker"
+        )
+
+        await interaction.response.send_message(embed=embed)
+
+
 async def setup(bot):
     await bot.add_cog(Social(bot))

@@ -1953,5 +1953,63 @@ class Utility(commands.GroupCog, group_name="utility"):
             embed=embed
         )
 
+    @group_1.command(
+        name="emojikitchen",
+        description="blend two emojis together in the emoji kitchen!"
+    )
+    @app_commands.describe(
+        emojione="Emoji 1",
+        emojitwo="Emoji 2"
+    )
+    async def emojikitchen(
+        self,
+        interaction: Interaction,
+        emojione: str,
+        emojitwo: str
+    ):
+        await interaction.response.defer()
+
+        url = f"https://emojik.vercel.app/s/{emojione}_{emojitwo}?size=512"
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status != 200:
+                        embed = discord.Embed(
+                            title="❌ Error",
+                            description="The Emoji Kitchen API couldn't make that combination.",
+                            color=get_fail_colour()
+                        )
+                        await interaction.followup.send(embed=embed)
+                        return
+
+                    image = await response.read()
+
+            file = discord.File(
+                io.BytesIO(image),
+                filename="emoji-kitchen.png"
+            )
+
+            embed = discord.Embed(
+                title="🍳 Emoji Kitchen",
+                description=f"{emojione} + {emojitwo}",
+                color=get_success_colour()
+            )
+            embed.set_image(url="attachment://emoji-kitchen.png")
+
+            await interaction.followup.send(
+                embed=embed,
+                file=file
+            )
+
+        except aiohttp.ClientError:
+            embed = discord.Embed(
+                title="❌ Error",
+                description="Failed to connect to the Emoji Kitchen API.",
+                color=get_fail_colour()
+            )
+
+            await interaction.followup.send(embed=embed)
+
 async def setup(bot):
     await bot.add_cog(Utility(bot))
