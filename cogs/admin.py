@@ -18,8 +18,6 @@ def owner_check():
 
     return app_commands.check(predicate)
 
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
 class Admin(commands.GroupCog, group_name="admin"):
     def __init__(self, bot):
         self.bot = bot
@@ -30,10 +28,9 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     group_1 = app_commands.Group(
         name="1",
-        description="Admin - page 1",
-        allowed_contexts=app_commands.AppCommandContext(guild=True, dm=True, private_channel=True),
-        allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
+        description="Admin - page 1"
     )
+
     @group_1.command(
         name="addadmin",
         description="(OWNER) give someone admin"
