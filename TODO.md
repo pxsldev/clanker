@@ -24,4 +24,7 @@
 - add error messages for `/caption`
 - make `/caption` work with gifs
 
+## Misc Commands
+- add command that adds cat ears to anyone's pfp
+
 -# This message is updated automatically.
