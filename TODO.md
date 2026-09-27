@@ -13,6 +13,7 @@
 
 - add `/timezone`
 - add `/birthday`
+- add `/howmanydaysuntilchristmas`
 
 # Chess.com Commands
 
@@ -22,9 +23,5 @@
 
 - add error messages for `/caption`
 - make `/caption` work with gifs
-
-## System Stuff
-
-- make clanker user installable
 
 -# This message is updated automatically.
