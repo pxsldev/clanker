@@ -6,7 +6,6 @@ topggpy
 pilmoji
 emoji
 opencv-python
-socket
 whois
 mathparse
 python-dateutil

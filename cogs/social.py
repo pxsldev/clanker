@@ -1300,6 +1300,5 @@ class Social(commands.GroupCog, group_name="social"):
 
         await interaction.response.send_message(embed=embed)
 
-
 async def setup(bot):
     await bot.add_cog(Social(bot))
