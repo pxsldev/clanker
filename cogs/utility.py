@@ -13,8 +13,10 @@ import json
 import urllib.parse
 import socket
 import whois
+from datetime import datetime, timezone
 from mathparse import mathparse
 from cogs.theming import get_fail_colour, get_success_colour
+from dateutil.easter import easter
 
 class Utility(commands.GroupCog, group_name="utility"):
     def __init__(self, bot):
@@ -2010,6 +2012,155 @@ class Utility(commands.GroupCog, group_name="utility"):
             )
 
             await interaction.followup.send(embed=embed)
+
+    group_2 = app_commands.Group(
+        name="2",
+        description="Utility - page 2"
+    )
+    
+    @group_2.command(
+        name ="daysuntilchristmas",
+        description="Calculate how many days there are till christmas"
+    )
+    async def daysuntilchristmas(self, interaction: Interaction):
+        now = datetime.now(timezone.utc)
+
+        desired_time = datetime(now.year, 12, 25, tzinfo=timezone.utc)
+        if now >= desired_time:
+            desired_time = datetime(now.year + 1, 12, 25, tzinfo=timezone.utc)
+
+        if now.day == desired_time.day and now.month == desired_time.month:
+            embed = discord.Embed(
+                title="🎄 It's Christmas!",
+                description="Have a happy holidays, whatever you are celebrating today! 💗",
+                color=get_success_colour()
+            ) 
+            embed.set_footer(
+                text=f"Timezone is in UTC (Coordinated Universal Time)"
+            )   
+            await interaction.response.send_message(
+                embed=embed
+            )
+            return
+
+        diff = desired_time - now
+
+        days = diff.days
+        hours, remainder = divmod(diff.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        embed = discord.Embed(
+            title="🎄 Time till Christmas",
+            description=f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds left till the 25th of December {now.year}",
+            color=get_success_colour()
+        )
+        embed.set_footer(
+            text=f"Timezone is in UTC (Coordinated Universal Time)"
+        )   
+        
+        await interaction.response.send_message(
+            embed=embed
+        )
+
+    @group_2.command(
+        name ="daysuntilhalloween",
+        description="Calculate how many days there are till halloween"
+    )
+    async def daysuntilhalloween(self, interaction: Interaction):
+        now = datetime.now(timezone.utc)
+
+        desired_time = datetime(now.year, 10, 31, tzinfo=timezone.utc)
+        if now >= desired_time:
+            desired_time = datetime(now.year + 1, 10, 31, tzinfo=timezone.utc)
+
+        if now.day == desired_time.day and now.month == desired_time.month:
+            embed = discord.Embed(
+                title="🎃 It's Halloween!",
+                description="Have a happy halloween, whatever you are celebrating today! 💗",
+                color=get_success_colour()
+            ) 
+            embed.set_footer(
+                text=f"Timezone is in UTC (Coordinated Universal Time)"
+            )   
+            await interaction.response.send_message(
+                embed=embed
+            )
+            return
+
+        diff = desired_time - now
+
+        days = diff.days
+        hours, remainder = divmod(diff.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        embed = discord.Embed(
+            title="🎃 Time till Halloween",
+            description=f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds left till the 31st of October {now.year}",
+            color=get_success_colour()
+        )
+        embed.set_footer(
+            text=f"Timezone is in UTC (Coordinated Universal Time)"
+        )   
+        
+        await interaction.response.send_message(
+            embed=embed
+        )
+
+    @group_2.command(
+        name ="daysuntileaster",
+        description="Calculate how many days there are till Easter"
+    )
+    async def daysuntileaster(self, interaction: Interaction):
+        now = datetime.now(timezone.utc)
+        easter_date = easter(now.year)
+        desired_time = datetime(
+            easter_date.year,
+            easter_date.month,
+            easter_date.day,
+            tzinfo=timezone.utc
+        )
+
+        if now >= desired_time:
+            easter_date = easter(now.year + 1)
+            desired_time = datetime(
+                easter_date.year,
+                easter_date.month,
+                easter_date.day,
+                tzinfo=timezone.utc
+            )
+
+        if now.day == desired_time.day and now.month == desired_time.month:
+            embed = discord.Embed(
+                title="🐣 It's Easter!",
+                description="Have a happy Easter, whatever you are celebrating today! 💗",
+                color=get_success_colour()
+            )
+            embed.set_footer(
+                text=f"Timezone is in UTC (Coordinated Universal Time)"
+            )
+
+            await interaction.response.send_message(
+                embed=embed
+            )
+            return
+
+        diff = desired_time - now
+        days = diff.days
+        hours, remainder = divmod(diff.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        embed = discord.Embed(
+            title="🐣 Time till Easter",
+            description=f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds left till Easter {desired_time.year}",
+            color=get_success_colour()
+        )
+        embed.set_footer(
+            text=f"Timezone is in UTC (Coordinated Universal Time)"
+        )
+
+        await interaction.response.send_message(
+            embed=embed
+        )
 
 async def setup(bot):
     await bot.add_cog(Utility(bot))
