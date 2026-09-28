@@ -26,5 +26,6 @@
 
 ## Misc Commands
 - add command that adds cat ears to anyone's pfp
+- add command that turns any image into a spinning sphere gif
 
 -# This message is updated automatically.
