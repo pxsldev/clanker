@@ -13,7 +13,6 @@
 
 - add `/timezone`
 - add `/birthday`
-- add `/howmanydaysuntilchristmas`
 
 # Chess.com Commands
 
