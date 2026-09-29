@@ -8,7 +8,7 @@
 
 # eautopian was here from the pixel development computer
 
-# eautopian is poopy :)
+# eautopian is :)
 
 import discord
 from discord.ext import commands, tasks

@@ -1506,7 +1506,7 @@ class Images(commands.GroupCog, group_name="image"):
         img.close()
         result.close()
 
-    @app_commands.command(
+    @image_1.command(
         name="globe",
         description="project any image onto a spinning sphere"
     )
