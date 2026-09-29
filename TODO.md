@@ -22,6 +22,7 @@
 
 - add error messages for `/caption`
 - make `/caption` work with gifs
+- fix the entire video.py cog cuz it's just really shit and idk why
 
 ## Misc Commands
 - add command that adds cat ears to anyone's pfp
