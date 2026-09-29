@@ -462,7 +462,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if amount <= 0:
             embed = discord.Embed(
-                title="❌ ATM Error",
+                title="🚫 ATM Error",
                 description="Amount must be greater than 0.",
                 color=get_fail_colour()
             )
@@ -499,7 +499,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
             if amount > user["balance"]:
                 embed = discord.Embed(
-                    title="❌ ATM Error",
+                    title="🚫 ATM Error",
                     description="you don't have enough in your wallet.",
                     color=get_fail_colour()
                 )
@@ -529,7 +529,7 @@ class Economy(commands.GroupCog, group_name="economy"):
         else:
             if amount > user["bank"]:
                 embed = discord.Embed(
-                    title="❌ ATM Error",
+                    title="🚫 ATM Error",
                     description="you don't have that much in your bank",
                     color=get_fail_colour()
                 )
@@ -573,7 +573,7 @@ class Economy(commands.GroupCog, group_name="economy"):
     ):
         if target.id == interaction.user.id:
             embed = discord.Embed(
-                title="❌ Rob Failed",
+                title="🚫 Rob Failed",
                 description="You can't rob yourself!",
                 color=get_fail_colour()
             )
@@ -624,7 +624,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if target_user["balance"] <= 0:
             embed = discord.Embed(
-                title="❌ Rob Failed",
+                title="🚫 Rob Failed",
                 description=(
                     "This user has no coins in "
                     "their wallet to rob!"
@@ -708,7 +708,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if bet <= 0 or bet > user["balance"]:
             embed = discord.Embed(
-                title="❌ Invalid Bet",
+                title="🚫 Invalid Bet",
                 description="Invalid or insufficient balance.",
                 color=get_fail_colour()
             )
@@ -807,7 +807,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if bet <= 0 or bet > user["balance"]:
             embed = discord.Embed(
-                title="❌ Invalid Bet",
+                title="🚫 Invalid Bet",
                 description="Invalid or insufficient balance.",
                 color=get_fail_colour()
             )
@@ -879,7 +879,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if number < 1 or number > 6:
             embed = discord.Embed(
-                title="❌ Invalid Number",
+                title="🚫 Invalid Number",
                 description=(
                     "Pick a number between **1 and 6**."
                 ),
@@ -895,7 +895,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if bet <= 0 or bet > user["balance"]:
             embed = discord.Embed(
-                title="❌ Invalid Bet",
+                title="🚫 Invalid Bet",
                 description="Invalid or insufficient balance.",
                 color=get_fail_colour()
             )
@@ -964,7 +964,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if bet <= 0 or bet > user["balance"]:
             embed = discord.Embed(
-                title="❌ Invalid Bet",
+                title="🚫 Invalid Bet",
                 description="Invalid or insufficient balance.",
                 color=get_fail_colour()
             )
@@ -1178,7 +1178,7 @@ class Economy(commands.GroupCog, group_name="economy"):
             ):
                 return await btn_interaction.response.send_message(
                     embed=discord.Embed(
-                        title="❌ Error",
+                        title="🚫 Error",
                         description="Not your leaderboard.",
                         color=get_fail_colour()
                     ),
@@ -1201,7 +1201,7 @@ class Economy(commands.GroupCog, group_name="economy"):
             ):
                 return await btn_interaction.response.send_message(
                     embed=discord.Embed(
-                        title="❌ Error",
+                        title="🚫 Error",
                         description="Not your leaderboard.",
                         color=get_fail_colour()
                     ),
@@ -1244,7 +1244,7 @@ class Economy(commands.GroupCog, group_name="economy"):
     ):
         if user.id == interaction.user.id:
             embed = discord.Embed(
-                title="❌ Gift Failed",
+                title="🚫 Gift Failed",
                 description=(
                     "You can’t gift money to yourself."
                 ),
@@ -1260,7 +1260,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if amount <= 0:
             embed = discord.Embed(
-                title="❌ Gift Failed",
+                title="🚫 Gift Failed",
                 description=(
                     "Amount must be greater than 0."
                 ),
@@ -1290,7 +1290,7 @@ class Economy(commands.GroupCog, group_name="economy"):
 
         if sender["balance"] < amount:
             embed = discord.Embed(
-                title="❌ Gift Failed",
+                title="🚫 Gift Failed",
                 description=(
                     "You don’t have enough coins."
                 ),
@@ -1373,7 +1373,7 @@ class Economy(commands.GroupCog, group_name="economy"):
         if bet <= 0:
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Invalid Bet",
+                    title="🚫 Invalid Bet",
                     description=(
                         "Bet must be higher than 0."
                     ),
@@ -1385,7 +1385,7 @@ class Economy(commands.GroupCog, group_name="economy"):
         if bet > user["balance"]:
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Not Enough Coins",
+                    title="🚫 Not Enough Coins",
                     description=(
                         "You don’t have enough money "
                         "for that bet."

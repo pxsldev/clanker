@@ -1117,7 +1117,7 @@ class Social(commands.GroupCog, group_name="social"):
                     if response.status != 200:
                         await interaction.followup.send(
                             embed=discord.Embed(
-                                title="❌ Generation Failed",
+                                title="🚫 Generation Failed",
                                 description=(
                                     f"The Pop Cat API returned "
                                     f"`{response.status}`."
@@ -1140,7 +1140,7 @@ class Social(commands.GroupCog, group_name="social"):
         except Exception as e:
             await interaction.followup.send(
                 embed=discord.Embed(
-                    title="❌ Generation Failed",
+                    title="🚫 Generation Failed",
                     description=f"```{e}```",
                     color=get_fail_colour()
                 ),
@@ -1164,7 +1164,7 @@ class Social(commands.GroupCog, group_name="social"):
                 if response.status != 200:
                     await interaction.followup.send(
                         embed=discord.Embed(
-                            title="❌ Error",
+                            title="🚫 Error",
                             description="Couldn't fetch an AITA post... sorry!",
                             color=get_fail_colour()
                         )

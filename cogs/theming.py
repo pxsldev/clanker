@@ -3,6 +3,7 @@ import datetime
 from discord.ext import commands, tasks
 
 THEMES = {
+
     "halloween": {
         "success": discord.Color.orange(),
         "fail": discord.Color.purple(),
@@ -10,6 +11,7 @@ THEMES = {
         "banner": "assets/halloween/banner.png",
         "name": "Spooky Clanker 🎃",
     },
+
     "fools": {
         "success": discord.Color.yellow(),
         "fail": discord.Color.magenta(),
@@ -17,6 +19,7 @@ THEMES = {
         "banner": "assets/fools/banner.png",
         "name": "clanker uwu :3",
     },
+
     "christmas": {
         "success": discord.Color.green(),
         "fail": discord.Color.red(),
@@ -24,6 +27,7 @@ THEMES = {
         "banner": "assets/christmas/banner.png",
         "name": "Merry Clanker🎄",
     },
+
     "easter": {
         "success": discord.Color.green(),
         "fail": discord.Color.pink(),
@@ -31,6 +35,7 @@ THEMES = {
         "banner": "assets/easter/banner.png",
         "name": "Clanker Bunny 🐰",
     },
+
     "default": {
         "success": discord.Color.blurple(),
         "fail": discord.Color.red(),
@@ -38,6 +43,7 @@ THEMES = {
         "banner": "assets/default/banner.png",
         "name": "Clanker",
     },
+
 }
 
 def get_theme():
@@ -72,6 +78,7 @@ def get_name():
     return THEMES[cached_theme]["name"]
 
 class Theming(commands.Cog):
+
     def __init__(self, bot):
         self.bot = bot
         self.current_date = None
@@ -88,38 +95,47 @@ class Theming(commands.Cog):
         date = now.date()
         theme = get_theme()
 
-        if self.current_date == date and self.applied_theme == theme:
+        theme_changed = self.applied_theme != theme
+
+        if self.current_date == date and not theme_changed:
             return
 
         cached_theme = theme
         self.current_date = date
-        self.applied_theme = theme
 
-        name = get_name()
-        avatar_file = get_avatar()
-        banner_file = get_banner()
+        name = THEMES[theme]["name"]
+        avatar_file = THEMES[theme]["avatar"]
+        banner_file = THEMES[theme]["banner"]
 
         if self.bot.user.name != name:
             try:
                 await self.bot.user.edit(username=name)
+                print(f"[THEMING] Updated name to {name}")
             except discord.HTTPException as e:
                 print(f"[THEMING] Failed to update name: {e}")
 
-        try:
-            with open(avatar_file, "rb") as f:
-                avatar = f.read()
+        if theme_changed:
+            try:
+                with open(avatar_file, "rb") as f:
+                    avatar = f.read()
 
-            await self.bot.user.edit(avatar=avatar)
-        except discord.HTTPException as e:
-            print(f"[THEMING] Failed to update avatar: {e}")
+                await self.bot.user.edit(avatar=avatar)
+                print(f"[THEMING] Updated avatar for {theme}")
 
-        try:
-            with open(banner_file, "rb") as f:
-                banner = f.read()
+            except discord.HTTPException as e:
+                print(f"[THEMING] Failed to update avatar: {e}")
 
-            await self.bot.user.edit(banner=banner)
-        except discord.HTTPException as e:
-            print(f"[THEMING] Failed to update banner: {e}")
+            try:
+                with open(banner_file, "rb") as f:
+                    banner = f.read()
+
+                await self.bot.user.edit(banner=banner)
+                print(f"[THEMING] Updated banner for {theme}")
+
+            except discord.HTTPException as e:
+                print(f"[THEMING] Failed to update banner: {e}")
+
+        self.applied_theme = theme
 
     @tasks.loop(
         time=datetime.time(

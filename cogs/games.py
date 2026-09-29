@@ -37,7 +37,7 @@ class WordleView(discord.ui.View):
     async def interaction_check(self, interaction: Interaction):
         if interaction.user.id != self.user_id:
             embed = discord.Embed(
-                title="That's not your Wordle! ❌",
+                title="🚫 That's not your Wordle!",
                 description="You can't interact with someone else's game.",
                 color=get_fail_colour()
             )
@@ -94,7 +94,7 @@ class WordleView(discord.ui.View):
     async def guess(self, interaction: Interaction):
         if self.finished:
             embed = discord.Embed(
-                title="Wordle has ended! ❌",
+                title="🚫 Wordle has ended!",
                 description="This game is already finished.",
                 color=get_fail_colour()
             )
@@ -113,7 +113,7 @@ class WordleView(discord.ui.View):
     async def quit(self, interaction: Interaction):
         if self.finished:
             embed = discord.Embed(
-                title="Wordle has ended! ❌",
+                title="🚫 Wordle has ended!",
                 description="This game is already finished.",
                 color=get_fail_colour()
             )
@@ -168,7 +168,7 @@ class WordleModal(discord.ui.Modal, title="Make a guess"):
     async def on_submit(self, interaction: Interaction):
         if self.game.finished:
             embed = discord.Embed(
-                title="Wordle has ended! ❌",
+                title="🚫 Wordle has ended!",
                 description="This game is already finished.",
                 color=get_fail_colour()
             )
@@ -184,7 +184,7 @@ class WordleModal(discord.ui.Modal, title="Make a guess"):
 
         if len(guess) != 5 or not guess.isalpha():
             embed = discord.Embed(
-                title="Invalid guess ❌",
+                title="🚫 Invalid guess",
                 description="Your guess must contain exactly **5 letters**.",
                 color=get_fail_colour()
             )
@@ -198,7 +198,7 @@ class WordleModal(discord.ui.Modal, title="Make a guess"):
 
         if guess not in self.game.valid_words:
             embed = discord.Embed(
-                title="Not a valid word ❌",
+                title="🚫 Not a valid word",
                 description=f"**{guess}** isn't in the Wordle word list.",
                 color=get_fail_colour()
             )
@@ -315,7 +315,7 @@ class Games(commands.GroupCog, group_name="games"):
             )
 
             embed = discord.Embed(
-                title="Couldn't start Wordle ❌",
+                title="🚫 Couldn't start Wordle",
                 description=(
                     "I couldn't retrieve the Wordle word list right now.\n"
                     "Please try again in a moment."

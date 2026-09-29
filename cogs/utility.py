@@ -140,7 +140,7 @@ class Utility(commands.GroupCog, group_name="utility"):
             async with session.get(json_url) as resp:
                 if resp.status != 200:
                     return await interaction.response.send_message(
-                        "Failed to fetch cat images ❌",
+                        "🚫 Failed to fetch cat images",
                         ephemeral=True
                     )
 
@@ -156,7 +156,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         if not valid_lines:
             return await interaction.response.send_message(
-                "No cat images found ❌",
+                "🚫 No cat images found",
                 ephemeral=True
             )
 
@@ -186,7 +186,7 @@ class Utility(commands.GroupCog, group_name="utility"):
     ):
         if length < 4 or length > 100:
             embed = discord.Embed(
-                title="Invalid Length ❌",
+                title="🚫 Invalid Length",
                 description=(
                     "Password length must be between "
                     "4 and 100 characters."
@@ -278,13 +278,13 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         if seconds <= 0:
             return await interaction.response.send_message(
-                "❌ Invalid time format. Use `10s`, `5m`, `2h`, `1d`, `1w`.",
+                "🚫 Invalid time format. Use `10s`, `5m`, `2h`, `1d`, `1w`.",
                 ephemeral=True
             )
 
         if seconds > 604800:
             return await interaction.response.send_message(
-                "❌ Max reminder time is 1 week.",
+                "🚫 Max reminder time is 1 week.",
                 ephemeral=True
             )
 
@@ -395,7 +395,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
             await interaction.followup.send(
                 embed=discord.Embed(
-                    title="❌ Error",
+                    title="🚫 Error",
                     description=(
                         "Something went wrong while "
                         "deleting your data."
@@ -431,7 +431,7 @@ class Utility(commands.GroupCog, group_name="utility"):
                 ) as resp:
                     if resp.status != 200:
                         embed = discord.Embed(
-                            title="❌ Steam API Error",
+                            title="🚫 Steam API Error",
                             description=(
                                 "Steam failed to return search results.\n\n"
                                 "Please try again later."
@@ -450,7 +450,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
                 if not items:
                     embed = discord.Embed(
-                        title="❌ Game Not Found",
+                        title="🚫 Game Not Found",
                         description=(
                             f"I couldn't find a Steam game matching "
                             f"`{game}`."
@@ -498,7 +498,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
                 if exact_match is None:
                     embed = discord.Embed(
-                        title="❌ Game Not Found",
+                        title="🚫 Game Not Found",
                         description=(
                             f"I couldn't find an exact Steam game "
                             f"called `{game}`."
@@ -523,7 +523,7 @@ class Utility(commands.GroupCog, group_name="utility"):
                 ) as resp:
                     if resp.status != 200:
                         embed = discord.Embed(
-                            title="❌ Steam API Error",
+                            title="🚫 Steam API Error",
                             description=(
                                 "Steam found the game, but I couldn't "
                                 "retrieve its information."
@@ -545,7 +545,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
                 if not app_data.get("success"):
                     embed = discord.Embed(
-                        title="❌ Game Information Unavailable",
+                        title="🚫 Game Information Unavailable",
                         description=(
                             "Steam found the game, but its information "
                             "is currently unavailable."
@@ -647,7 +647,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         except aiohttp.ClientError:
             embed = discord.Embed(
-                title="❌ Connection Error",
+                title="🚫 Connection Error",
                 description=(
                     "I couldn't connect to Steam.\n\n"
                     "Please try again later."
@@ -664,7 +664,7 @@ class Utility(commands.GroupCog, group_name="utility"):
             print("STEAM COMMAND ERROR:", e)
 
             embed = discord.Embed(
-                title="❌ Unexpected Error",
+                title="🚫 Unexpected Error",
                 description=(
                     "Something went wrong while getting "
                     "the Steam game information."
@@ -698,7 +698,7 @@ class Utility(commands.GroupCog, group_name="utility"):
                 async with session.get(url) as response:
                     if response.status != 200:
                         await interaction.followup.send(
-                            "❌ Couldn't find that GitHub profile."
+                            "🚫 Couldn't find that GitHub profile."
                         )
                         return
 
@@ -706,7 +706,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
             if data.get("error"):
                 await interaction.followup.send(
-                    "❌ Couldn't find that GitHub profile."
+                    "🚫 Couldn't find that GitHub profile."
                 )
                 return
 
@@ -771,7 +771,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         except Exception:
             await interaction.followup.send(
-                "❌ Something went wrong while fetching that GitHub profile."
+                "🚫 Something went wrong while fetching that GitHub profile."
             )
 
     @group_1.command(
@@ -798,7 +798,7 @@ class Utility(commands.GroupCog, group_name="utility"):
                 ) as response:
                     if response.status != 200:
                         await interaction.followup.send(
-                            "❌ Couldn't find anything for that search."
+                            "🚫 Couldn't find anything for that search."
                         )
                         return
 
@@ -806,7 +806,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
             if data.get("error"):
                 await interaction.followup.send(
-                    "❌ Couldn't find anything for that search."
+                    "🚫 Couldn't find anything for that search."
                 )
                 return
 
@@ -917,7 +917,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         except Exception:
             await interaction.followup.send(
-                "❌ Something went wrong while looking that up."
+                "🚫 Something went wrong while looking that up."
             )
 
     @group_1.command(
@@ -944,7 +944,7 @@ class Utility(commands.GroupCog, group_name="utility"):
                 ) as response:
                     if response.status != 200:
                         await interaction.followup.send(
-                            "❌ Couldn't find anything for that search."
+                            "🚫 Couldn't find anything for that search."
                         )
                         return
 
@@ -952,7 +952,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
             if data.get("error"):
                 await interaction.followup.send(
-                    "❌ Couldn't find anything for that search."
+                    "🚫 Couldn't find anything for that search."
                 )
                 return
 
@@ -1015,7 +1015,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         except Exception:
             await interaction.followup.send(
-                "❌ Something went wrong while searching iTunes."
+                "🚫 Something went wrong while searching iTunes."
             )
 
     @group_1.command(
@@ -1042,7 +1042,7 @@ class Utility(commands.GroupCog, group_name="utility"):
                 ) as response:
                     if response.status != 200:
                         await interaction.followup.send(
-                            "❌ Couldn't find that NPM package."
+                            "🚫 Couldn't find that NPM package."
                         )
                         return
 
@@ -1050,7 +1050,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
             if data.get("error"):
                 await interaction.followup.send(
-                    "❌ Couldn't find that NPM package."
+                    "🚫 Couldn't find that NPM package."
                 )
                 return
 
@@ -1120,7 +1120,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         except Exception:
             await interaction.followup.send(
-                "❌ Something went wrong while looking up that NPM package."
+                "🚫 Something went wrong while looking up that NPM package."
             )
 
     @group_1.command(
@@ -1147,7 +1147,7 @@ class Utility(commands.GroupCog, group_name="utility"):
                 ) as response:
                     if response.status != 200:
                         await interaction.followup.send(
-                            "❌ Couldn't find that location."
+                            "🚫 Couldn't find that location."
                         )
                         return
 
@@ -1155,7 +1155,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
             if data.get("error") or not data.get("message"):
                 await interaction.followup.send(
-                    "❌ Couldn't find that location."
+                    "🚫 Couldn't find that location."
                 )
                 return
 
@@ -1233,7 +1233,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         except Exception:
             await interaction.followup.send(
-                "❌ Something went wrong while getting the weather."
+                "🚫 Something went wrong while getting the weather."
             )
 
     @group_1.command(
@@ -1906,7 +1906,7 @@ class Utility(commands.GroupCog, group_name="utility"):
         ):
             await interaction.followup.send(
                 embed=self.embed(
-                    "❌ Port Closed",
+                    "🚫 Port Closed",
                     f"**{host}:{port}** is closed or filtered."
                 )
             )
@@ -1914,7 +1914,7 @@ class Utility(commands.GroupCog, group_name="utility"):
         except Exception as e:
             await interaction.followup.send(
                 embed=self.embed(
-                    "❌ Error",
+                    "🚫 Error",
                     f"Check failed: {e}",
                     True
                 )
@@ -1978,7 +1978,7 @@ class Utility(commands.GroupCog, group_name="utility"):
                 async with session.get(url) as response:
                     if response.status != 200:
                         embed = discord.Embed(
-                            title="❌ Error",
+                            title="🚫 Error",
                             description="The Emoji Kitchen API couldn't make that combination.",
                             color=get_fail_colour()
                         )
@@ -2006,7 +2006,7 @@ class Utility(commands.GroupCog, group_name="utility"):
 
         except aiohttp.ClientError:
             embed = discord.Embed(
-                title="❌ Error",
+                title="🚫 Error",
                 description="Failed to connect to the Emoji Kitchen API.",
                 color=get_fail_colour()
             )

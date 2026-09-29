@@ -44,7 +44,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if user.id in self.bot.data.get("admins", []):
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Already Admin",
+                    title="🚫 Already Admin",
                     description=f"{user.mention} is already an admin.",
                     color=get_fail_colour()
                 ),
@@ -76,7 +76,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if user.id not in self.bot.data.get("admins", []):
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Not Admin",
+                    title="🚫 Not Admin",
                     description=f"{user.mention} is not an admin.",
                     color=get_fail_colour()
                 ),
@@ -144,7 +144,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         ):
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ No Permission",
+                    title="🚫 No Permission",
                     description="You are not allowed to use this command.",
                     color=get_fail_colour()
                 ),
@@ -201,7 +201,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         except discord.Forbidden:
             await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Missing Permissions",
+                    title="🚫 Missing Permissions",
                     description="I can't send messages in that channel.",
                     color=get_fail_colour()
                 ),
@@ -223,7 +223,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if amount <= 0:
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Invalid Amount",
+                    title="🚫 Invalid Amount",
                     description="Amount must be greater than 0.",
                     color=get_fail_colour()
                 ),
@@ -235,7 +235,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if not economy:
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Error",
+                    title="🚫 Error",
                     description="Economy cog not loaded.",
                     color=get_fail_colour()
                 ),
@@ -275,7 +275,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if amount <= 0:
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Invalid Amount",
+                    title="🚫 Invalid Amount",
                     description="Amount must be greater than 0.",
                     color=get_fail_colour()
                 ),
@@ -287,7 +287,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if not economy:
             return await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ Error",
+                    title="🚫 Error",
                     description="Economy cog not loaded.",
                     color=get_fail_colour()
                 ),
@@ -348,7 +348,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         except discord.Forbidden:
             await interaction.response.send_message(
                 embed=discord.Embed(
-                    title="❌ DM Failed",
+                    title="🚫 DM Failed",
                     description="User has DMs disabled.",
                     color=get_fail_colour()
                 ),

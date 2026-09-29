@@ -11,6 +11,7 @@ import tempfile
 import shutil
 import random
 from cogs.theming import get_fail_colour, get_success_colour
+import math
 
 class Images(commands.GroupCog, group_name="image"):
 
@@ -1504,6 +1505,192 @@ class Images(commands.GroupCog, group_name="image"):
 
         img.close()
         result.close()
+
+    @app_commands.command(
+        name="globe",
+        description="project any image onto a spinning sphere"
+    )
+    @app_commands.describe(
+        media="The image to wrap around the globe",
+        url="A direct image URL"
+    )
+    async def globe(
+        self,
+        interaction: discord.Interaction,
+        media: discord.Attachment = None,
+        url: str = None
+    ):
+        await interaction.response.defer()
+
+        img, err_title, err_desc = await self.load_image(
+            interaction,
+            media,
+            url
+        )
+
+        if not img:
+            return await self.send_error(
+                interaction,
+                err_title,
+                err_desc
+            )
+
+        source = None
+        output_frames = []
+
+        try:
+            source = self.prepare_texture(
+                img.convert("RGB")
+            )
+
+            width = 256
+            height = 256
+            frames = 32
+
+            for frame in range(frames):
+                output_frames.append(
+                    self.render_globe(
+                        source,
+                        width,
+                        height,
+                        frame / frames
+                    )
+                )
+
+            buffer = io.BytesIO()
+
+            output_frames[0].save(
+                buffer,
+                format="GIF",
+                save_all=True,
+                append_images=output_frames[1:],
+                duration=55,
+                loop=0,
+                disposal=2,
+                optimize=True
+            )
+
+            buffer.seek(0)
+
+            file = discord.File(
+                buffer,
+                filename="globe.gif"
+            )
+
+            embed = discord.Embed(
+                title="🌎 Globe",
+                description="Your image has been projected onto a spinning globe.",
+                color=get_success_colour()
+            )
+
+            embed.set_image(
+                url="attachment://globe.gif"
+            )
+
+            await interaction.followup.send(
+                embed=embed,
+                file=file
+            )
+
+        except Exception as e:
+            print(
+                f"[GLOBE] {e}"
+            )
+
+            embed = discord.Embed(
+                title="🚫 Globe Generation Failed",
+                description="I couldn't create the spinning globe.",
+                color=get_fail_colour()
+            )
+
+            await interaction.followup.send(
+                embed=embed
+            )
+
+        finally:
+            img.close()
+
+            if source:
+                source.close()
+
+            for frame in output_frames:
+                frame.close()
+
+    @staticmethod
+    def prepare_texture(image):
+        width, height = image.size
+
+        ratio = width / height
+
+        if ratio < 2:
+            new_width = height * 2
+            canvas = Image.new("RGB", (new_width, height))
+            canvas.paste(
+                image,
+                ((new_width - width) // 2, 0)
+            )
+            image = canvas
+
+        elif ratio > 2:
+            new_height = width // 2
+            canvas = Image.new("RGB", (width, new_height))
+            canvas.paste(
+                image,
+                (0, (new_height - height) // 2)
+            )
+            image = canvas
+
+        return image.resize((512, 256), Image.Resampling.LANCZOS)
+
+    @staticmethod
+    def render_globe(texture, width, height, rotation):
+        frame = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+
+        pixels = frame.load()
+        texture_pixels = texture.load()
+
+        radius = width * 0.43
+        center_x = width / 2
+        center_y = height / 2
+
+        for y in range(height):
+            dy = (y - center_y) / radius
+
+            if abs(dy) > 1:
+                continue
+
+            for x in range(width):
+                dx = (x - center_x) / radius
+
+                distance = dx * dx + dy * dy
+
+                if distance > 1:
+                    continue
+
+                dz = math.sqrt(1 - distance)
+
+                longitude = math.atan2(dx, dz)
+                latitude = math.asin(-dy)
+
+                longitude += rotation * math.tau
+
+                u = (longitude / math.tau + 0.5) % 1.0
+                v = 0.5 - latitude / math.pi
+
+                tx = int(u * 511) % 512
+                ty = max(0, min(255, int(v * 255)))
+
+                r, g, b = texture_pixels[tx, ty]
+
+                light = 0.45 + 0.55 * max(0, dz)
+
+                r = int(r * light)
+                g = int(g * light)
+                b = int(b * light)
+
+                pixels[x, y] = (r, g, b, 255)
+
+        return frame
 
 async def setup(bot):
     await bot.add_cog(
