@@ -12,7 +12,10 @@ import shutil
 import tempfile
 import asyncio
 import random
+import math
+
 from cogs.theming import get_fail_colour, get_success_colour
+
 
 class Video(commands.GroupCog, group_name="video"):
     video_1 = app_commands.Group(
@@ -38,7 +41,11 @@ class Video(commands.GroupCog, group_name="video"):
         ".avi",
         ".m4v",
         ".wmv",
-        ".flv"
+        ".flv",
+        ".3gp",
+        ".mpeg",
+        ".mpg",
+        ".ts"
     }
 
     def __init__(self, bot):
@@ -66,62 +73,126 @@ class Video(commands.GroupCog, group_name="video"):
                 embed=embed
             )
 
-    async def get_media_url(
+    async def get_media(
         self,
         interaction: Interaction,
         media: discord.Attachment = None,
         url: str = None
     ):
-        media_url = None
-
         if media:
-            media_url = media.url
+            return media, None
 
-        elif url:
-            media_url = url
+        if url:
+            return None, url.strip()
 
-        elif interaction.message and interaction.message.reference:
+        if interaction.message and interaction.message.reference:
             try:
                 replied = await interaction.channel.fetch_message(
                     interaction.message.reference.message_id
                 )
 
                 if replied.attachments:
-                    media_url = replied.attachments[0].url
+                    return replied.attachments[0], None
 
-            except:
-                pass
+            except Exception as e:
+                print(f"[MEDIA REPLY] {e}")
 
-        if not media_url:
-            async for message in interaction.channel.history(
-                limit=20
-            ):
+        try:
+            async for message in interaction.channel.history(limit=20):
                 if message.attachments:
-                    media_url = message.attachments[0].url
-                    break
+                    return message.attachments[0], None
+        except Exception as e:
+            print(f"[MEDIA HISTORY] {e}")
 
-        return media_url
+        return None, None
+
+    def get_extension(
+        self,
+        media: discord.Attachment = None,
+        media_url: str = None,
+        path: str = None
+    ):
+        if media and media.filename:
+            extension = os.path.splitext(
+                media.filename.lower()
+            )[1]
+
+            if extension:
+                return extension
+
+        if media_url:
+            clean_url = media_url.split("?", 1)[0].split("#", 1)[0]
+            extension = os.path.splitext(clean_url.lower())[1]
+
+            if extension in self.VIDEO_EXTENSIONS:
+                return extension
+
+        if path:
+            extension = os.path.splitext(path.lower())[1]
+
+            if extension:
+                return extension
+
+        return ".mp4"
+
+    def is_video(
+        self,
+        extension: str
+    ):
+        return extension.lower() in self.VIDEO_EXTENSIONS
 
     async def download_media(
         self,
-        media_url: str,
-        output_path: str
+        media: discord.Attachment = None,
+        media_url: str = None,
+        output_path: str = None
     ):
+        if not media and not media_url:
+            return False, "No media was provided."
+
         try:
+            if media:
+                if media.size and media.size > self.MAX_DOWNLOAD_SIZE:
+                    return False, (
+                        "That file is too large.\n\n"
+                        "The maximum allowed file size is **50 MB**."
+                    )
+
+                source_url = media.url
+
+            else:
+                source_url = media_url
+
             timeout = aiohttp.ClientTimeout(
-                total=60
+                total=90,
+                connect=20,
+                sock_read=60
             )
 
+            headers = {
+                "User-Agent": "Clanker/1.0"
+            }
+
             async with aiohttp.ClientSession(
-                timeout=timeout
+                timeout=timeout,
+                headers=headers
             ) as session:
+
                 async with session.get(
-                    media_url,
+                    source_url,
                     allow_redirects=True
                 ) as response:
 
                     if response.status != 200:
-                        return False, "Failed to download the media."
+                        print(
+                            f"[MEDIA DOWNLOAD] HTTP {response.status} "
+                            f"for {source_url}"
+                        )
+
+                        return False, (
+                            f"Failed to download the media "
+                            f"(HTTP {response.status})."
+                        )
 
                     content_length = response.headers.get(
                         "Content-Length"
@@ -134,26 +205,24 @@ class Video(commands.GroupCog, group_name="video"):
                                     "That file is too large.\n\n"
                                     "The maximum allowed file size is **50 MB**."
                                 )
-                        except:
+                        except ValueError:
                             pass
 
                     total = 0
 
-                    with open(
-                        output_path,
-                        "wb"
-                    ) as file:
+                    with open(output_path, "wb") as file:
                         async for chunk in response.content.iter_chunked(
                             1024 * 256
                         ):
+                            if not chunk:
+                                continue
+
                             total += len(chunk)
 
                             if total > self.MAX_DOWNLOAD_SIZE:
-                                file.close()
-
                                 try:
                                     os.remove(output_path)
-                                except:
+                                except OSError:
                                     pass
 
                                 return False, (
@@ -163,135 +232,234 @@ class Video(commands.GroupCog, group_name="video"):
 
                             file.write(chunk)
 
+            if not os.path.exists(output_path):
+                return False, "Failed to download the media."
+
+            size = os.path.getsize(output_path)
+
+            print(
+                f"[MEDIA DOWNLOAD] {size:,} bytes -> {output_path}"
+            )
+
+            if size == 0:
+                return False, "The downloaded file was empty."
+
             return True, None
 
-        except aiohttp.ClientError:
+        except asyncio.TimeoutError:
+            print("[MEDIA DOWNLOAD] Request timed out.")
+            return False, "The media download timed out."
+
+        except aiohttp.ClientError as e:
+            print(f"[MEDIA DOWNLOAD] {e}")
             return False, "Failed to download the media."
 
-        except Exception:
+        except Exception as e:
+            print(f"[MEDIA DOWNLOAD] {type(e).__name__}: {e}")
             return False, "Failed to download the media."
 
-    def get_extension(
+    async def run_process(
         self,
-        media_url: str,
-        path: str
+        command,
+        stdin=None,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
     ):
-        extension = os.path.splitext(
-            media_url.lower().split("?")[0]
-        )[1]
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdin=stdin,
+                stdout=stdout,
+                stderr=stderr
+            )
 
-        if extension:
-            return extension
+            stdout_data, stderr_data = await process.communicate()
 
-        return os.path.splitext(
-            path.lower()
-        )[1]
+            stdout_text = (
+                stdout_data.decode(
+                    errors="replace"
+                )
+                if stdout_data
+                else ""
+            )
 
-    def is_video(
-        self,
-        extension: str
-    ):
-        return extension in self.VIDEO_EXTENSIONS
+            stderr_text = (
+                stderr_data.decode(
+                    errors="replace"
+                )
+                if stderr_data
+                else ""
+            )
+
+            return process.returncode, stdout_text, stderr_text
+
+        except FileNotFoundError as e:
+            print(
+                f"[PROCESS] Executable not found: {command[0]}"
+            )
+
+            return -1, "", str(e)
+
+        except Exception as e:
+            print(
+                f"[PROCESS] {type(e).__name__}: {e}"
+            )
+
+            return -1, "", str(e)
 
     async def get_video_info(
         self,
         input_path: str
     ):
-        try:
-            process = await asyncio.create_subprocess_exec(
-                "ffprobe",
-                "-v",
-                "error",
-                "-show_entries",
-                "format=duration",
-                "-show_entries",
-                "stream=width,height,r_frame_rate",
-                "-of",
-                "default=noprint_wrappers=1",
-                input_path,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+        if not os.path.exists(input_path):
+            print(
+                f"[FFPROBE] File does not exist: {input_path}"
+            )
+            return None
+
+        file_size = os.path.getsize(input_path)
+
+        print(
+            f"[FFPROBE] Checking {input_path} "
+            f"({file_size:,} bytes)"
+        )
+
+        command = [
+            "ffprobe",
+            "-hide_banner",
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=codec_name,width,height,r_frame_rate,avg_frame_rate",
+            "-show_entries",
+            "format=duration,format_name",
+            "-of",
+            "default=noprint_wrappers=1",
+            input_path
+        ]
+
+        returncode, stdout, stderr = await self.run_process(
+            command
+        )
+
+        print(
+            f"[FFPROBE] Return code: {returncode}"
+        )
+
+        if stdout:
+            print(
+                f"[FFPROBE STDOUT]\n{stdout}"
             )
 
-            stdout, _ = await process.communicate()
+        if stderr:
+            print(
+                f"[FFPROBE STDERR]\n{stderr}"
+            )
 
-            if process.returncode != 0:
-                return None
-
-            data = stdout.decode(
-                errors="ignore"
-            ).splitlines()
-
-            duration = 0
-            width = 0
-            height = 0
-            fps = 0
-
-            for line in data:
-                if line.startswith("duration="):
-                    try:
-                        duration = float(
-                            line.split(
-                                "=",
-                                1
-                            )[1]
-                        )
-                    except:
-                        pass
-
-                elif line.startswith("width="):
-                    try:
-                        width = int(
-                            line.split(
-                                "=",
-                                1
-                            )[1]
-                        )
-                    except:
-                        pass
-
-                elif line.startswith("height="):
-                    try:
-                        height = int(
-                            line.split(
-                                "=",
-                                1
-                            )[1]
-                        )
-                    except:
-                        pass
-
-                elif line.startswith("r_frame_rate="):
-                    try:
-                        value = line.split(
-                            "=",
-                            1
-                        )[1]
-
-                        if "/" in value:
-                            numerator, denominator = value.split(
-                                "/"
-                            )
-
-                            fps = (
-                                float(numerator) /
-                                float(denominator)
-                            )
-                        else:
-                            fps = float(value)
-
-                    except:
-                        pass
-
-            return {
-                "duration": duration,
-                "width": width,
-                "height": height,
-                "fps": fps
-            }
-
-        except:
+        if returncode != 0:
             return None
+
+        data = {}
+
+        for line in stdout.splitlines():
+            if "=" not in line:
+                continue
+
+            key, value = line.split(
+                "=",
+                1
+            )
+
+            data[key.strip()] = value.strip()
+
+        try:
+            duration = float(
+                data.get(
+                    "duration",
+                    "0"
+                )
+            )
+        except ValueError:
+            duration = 0
+
+        try:
+            width = int(
+                data.get(
+                    "width",
+                    "0"
+                )
+            )
+        except ValueError:
+            width = 0
+
+        try:
+            height = int(
+                data.get(
+                    "height",
+                    "0"
+                )
+            )
+        except ValueError:
+            height = 0
+
+        fps = 0
+
+        fps_value = data.get(
+            "avg_frame_rate"
+        )
+
+        if not fps_value or fps_value == "0/0":
+            fps_value = data.get(
+                "r_frame_rate"
+            )
+
+        if fps_value:
+            try:
+                if "/" in fps_value:
+                    numerator, denominator = fps_value.split(
+                        "/",
+                        1
+                    )
+
+                    denominator = float(
+                        denominator
+                    )
+
+                    if denominator != 0:
+                        fps = float(numerator) / denominator
+                else:
+                    fps = float(
+                        fps_value
+                    )
+            except Exception:
+                fps = 0
+
+        codec = data.get(
+            "codec_name",
+            ""
+        )
+
+        format_name = data.get(
+            "format_name",
+            ""
+        )
+
+        if not width or not height:
+            return None
+
+        if not duration or duration <= 0:
+            return None
+
+        return {
+            "duration": duration,
+            "width": width,
+            "height": height,
+            "fps": fps,
+            "codec": codec,
+            "format": format_name
+        }
 
     async def validate_video(
         self,
@@ -304,8 +472,14 @@ class Video(commands.GroupCog, group_name="video"):
         if not info:
             return False, "Invalid or unsupported video."
 
-        if info["duration"] <= 0:
-            return False, "Couldn't determine the video duration."
+        print(
+            "[VIDEO INFO] "
+            f"duration={info['duration']:.3f}s "
+            f"resolution={info['width']}x{info['height']} "
+            f"fps={info['fps']:.3f} "
+            f"codec={info['codec']} "
+            f"format={info['format']}"
+        )
 
         if info["duration"] > self.MAX_VIDEO_DURATION:
             return False, (
@@ -315,6 +489,12 @@ class Video(commands.GroupCog, group_name="video"):
 
         if info["width"] <= 0 or info["height"] <= 0:
             return False, "Couldn't determine the video resolution."
+
+        if info["width"] > 3840 or info["height"] > 2160:
+            return False, (
+                "That video has an unsupported resolution.\n\n"
+                "Videos above **3840×2160** aren't supported."
+            )
 
         return True, None
 
@@ -334,34 +514,46 @@ class Video(commands.GroupCog, group_name="video"):
             "frame_%04d.jpg"
         )
 
-        process = await asyncio.create_subprocess_exec(
+        command = [
             "ffmpeg",
             "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
             "-i",
             input_path,
             "-vf",
             (
                 f"fps={self.MAX_VIDEO_FPS},"
                 f"scale={self.MAX_VIDEO_WIDTH}:{self.MAX_VIDEO_HEIGHT}:"
-                "force_original_aspect_ratio=decrease"
+                "force_original_aspect_ratio=decrease,"
+                "pad=ceil(iw/2)*2:ceil(ih/2)*2"
             ),
             "-frames:v",
             str(max_frames),
             "-q:v",
             "4",
-            output_pattern,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.PIPE
+            output_pattern
+        ]
+
+        returncode, stdout, stderr = await self.run_process(
+            command,
+            stdout=asyncio.subprocess.DEVNULL
         )
 
-        await process.communicate()
-
-        if process.returncode != 0:
+        if returncode != 0:
+            print(
+                f"[FFMPEG EXTRACT ERROR]\n{stderr}"
+            )
             return False
 
-        return len(
-            os.listdir(output_dir)
-        ) > 0
+        frames = [
+            filename
+            for filename in os.listdir(output_dir)
+            if filename.lower().endswith(".jpg")
+        ]
+
+        return len(frames) > 0
 
     async def encode_frames_to_video(
         self,
@@ -374,9 +566,20 @@ class Video(commands.GroupCog, group_name="video"):
             "frame_%04d.jpg"
         )
 
-        process = await asyncio.create_subprocess_exec(
+        fps = max(
+            1,
+            min(
+                fps,
+                self.MAX_VIDEO_FPS
+            )
+        )
+
+        command = [
             "ffmpeg",
             "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
             "-framerate",
             str(fps),
             "-i",
@@ -388,28 +591,41 @@ class Video(commands.GroupCog, group_name="video"):
             "-preset",
             "veryfast",
             "-crf",
-            "26",
+            "28",
             "-pix_fmt",
             "yuv420p",
             "-movflags",
             "+faststart",
-            output_path,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.PIPE
+            "-an",
+            output_path
+        ]
+
+        returncode, stdout, stderr = await self.run_process(
+            command,
+            stdout=asyncio.subprocess.DEVNULL
         )
 
-        await process.communicate()
-
-        if process.returncode != 0:
+        if returncode != 0:
+            print(
+                f"[FFMPEG ENCODE ERROR]\n{stderr}"
+            )
             return False
 
         if not os.path.exists(output_path):
             return False
 
-        if os.path.getsize(output_path) > self.MAX_OUTPUT_SIZE:
+        output_size = os.path.getsize(
+            output_path
+        )
+
+        print(
+            f"[VIDEO OUTPUT] {output_size:,} bytes"
+        )
+
+        if output_size > self.MAX_OUTPUT_SIZE:
             try:
                 os.remove(output_path)
-            except:
+            except OSError:
                 pass
 
             return False
@@ -456,42 +672,56 @@ class Video(commands.GroupCog, group_name="video"):
                     return False
 
                 frame_files = sorted(
-                    os.listdir(
-                        input_frames
-                    )
+                    filename
+                    for filename in os.listdir(input_frames)
+                    if filename.lower().endswith(".jpg")
                 )
 
                 if not frame_files:
                     return False
 
-                for index, filename in enumerate(
-                    frame_files
-                ):
-                    input_frame = Image.open(
-                        os.path.join(
-                            input_frames,
-                            filename
+                for index, filename in enumerate(frame_files):
+                    input_frame = None
+                    output_frame = None
+
+                    try:
+                        input_frame = Image.open(
+                            os.path.join(
+                                input_frames,
+                                filename
+                            )
+                        ).convert("RGB")
+
+                        output_frame = processor(
+                            input_frame
                         )
-                    ).convert(
-                        "RGB"
-                    )
 
-                    output_frame = processor(
-                        input_frame
-                    )
+                        if not isinstance(
+                            output_frame,
+                            Image.Image
+                        ):
+                            return False
 
-                    output_frame.save(
-                        os.path.join(
-                            output_frames,
-                            f"frame_{index + 1:04d}.jpg"
-                        ),
-                        "JPEG",
-                        quality=88,
-                        optimize=False
-                    )
+                        output_frame = output_frame.convert(
+                            "RGB"
+                        )
 
-                    input_frame.close()
-                    output_frame.close()
+                        output_frame.save(
+                            os.path.join(
+                                output_frames,
+                                f"frame_{index + 1:04d}.jpg"
+                            ),
+                            "JPEG",
+                            quality=86,
+                            optimize=False
+                        )
+
+                    finally:
+                        if input_frame:
+                            input_frame.close()
+
+                        if output_frame:
+                            output_frame.close()
 
                 info = await self.get_video_info(
                     input_path
@@ -529,13 +759,13 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         await interaction.response.defer()
 
-        media_url = await self.get_media_url(
+        attachment, media_url = await self.get_media(
             interaction,
             media,
             url
         )
 
-        if not media_url:
+        if not attachment and not media_url:
             return await self.send_error(
                 interaction,
                 "Missing Video ⚠️",
@@ -545,12 +775,19 @@ class Video(commands.GroupCog, group_name="video"):
         temp_dir = tempfile.mkdtemp()
 
         try:
+            extension = self.get_extension(
+                attachment,
+                media_url,
+                None
+            )
+
             input_path = os.path.join(
                 temp_dir,
-                "input"
+                f"input{extension}"
             )
 
             success, error = await self.download_media(
+                attachment,
                 media_url,
                 input_path
             )
@@ -560,20 +797,6 @@ class Video(commands.GroupCog, group_name="video"):
                     interaction,
                     "Download Error 🚫",
                     error
-                )
-
-            extension = self.get_extension(
-                media_url,
-                input_path
-            )
-
-            if not self.is_video(
-                extension
-            ):
-                return await self.send_error(
-                    interaction,
-                    "Invalid Video 🚫",
-                    "That file isn't a supported video."
                 )
 
             valid, error = await self.validate_video(
@@ -607,7 +830,7 @@ class Video(commands.GroupCog, group_name="video"):
 
             embed = discord.Embed(
                 title=title,
-                description=description if description else "",
+                description=description or "",
                 color=get_success_colour()
             )
 
@@ -690,11 +913,15 @@ class Video(commands.GroupCog, group_name="video"):
 
             result = ImageEnhance.Contrast(
                 result
-            ).enhance(2.0)
+            ).enhance(
+                2.0
+            )
 
             result = ImageEnhance.Color(
                 result
-            ).enhance(3.0)
+            ).enhance(
+                3.0
+            )
 
             return result.filter(
                 ImageFilter.UnsharpMask(
@@ -716,6 +943,9 @@ class Video(commands.GroupCog, group_name="video"):
         name="blur",
         description="Blur a video"
     )
+    @app_commands.describe(
+        amount="Blur amount"
+    )
     async def blur(
         self,
         interaction: Interaction,
@@ -725,7 +955,10 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         amount = max(
             0,
-            min(amount, 25)
+            min(
+                amount,
+                25
+            )
         )
 
         def processor(img):
@@ -748,6 +981,9 @@ class Video(commands.GroupCog, group_name="video"):
         name="bloom",
         description="Add bloom effect to a video"
     )
+    @app_commands.describe(
+        amount="Bloom amount"
+    )
     async def bloom(
         self,
         interaction: Interaction,
@@ -757,19 +993,38 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         amount = max(
             0.1,
-            min(amount, 3.0)
+            min(
+                amount,
+                3.0
+            )
         )
 
         def processor(img):
-            result = ImageEnhance.Brightness(
-                img
+            base = img.convert(
+                "RGB"
+            )
+
+            bright = ImageEnhance.Brightness(
+                base
             ).enhance(
                 amount
             )
 
-            return result.filter(
+            blurred = bright.filter(
                 ImageFilter.GaussianBlur(
                     radius=5
+                )
+            )
+
+            return Image.blend(
+                base,
+                blurred,
+                min(
+                    0.8,
+                    max(
+                        0.05,
+                        (amount - 0.1) / 3
+                    )
                 )
             ).convert("RGB")
 
@@ -786,6 +1041,9 @@ class Video(commands.GroupCog, group_name="video"):
         name="pixelate",
         description="Pixelate a video"
     )
+    @app_commands.describe(
+        amount="Pixelation amount"
+    )
     async def pixelate(
         self,
         interaction: Interaction,
@@ -795,7 +1053,10 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         amount = max(
             2,
-            min(amount, 50)
+            min(
+                amount,
+                50
+            )
         )
 
         def processor(img):
@@ -810,7 +1071,10 @@ class Video(commands.GroupCog, group_name="video"):
             )
 
             small = img.resize(
-                (width, height),
+                (
+                    width,
+                    height
+                ),
                 Image.Resampling.NEAREST
             )
 
@@ -832,6 +1096,9 @@ class Video(commands.GroupCog, group_name="video"):
         name="brighten",
         description="Brighten a video"
     )
+    @app_commands.describe(
+        amount="Brightness level"
+    )
     async def brighten(
         self,
         interaction: Interaction,
@@ -841,7 +1108,10 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         amount = max(
             0,
-            min(amount, 5)
+            min(
+                amount,
+                5
+            )
         )
 
         def processor(img):
@@ -864,6 +1134,9 @@ class Video(commands.GroupCog, group_name="video"):
         name="darken",
         description="Darken a video"
     )
+    @app_commands.describe(
+        amount="Darkness level"
+    )
     async def darken(
         self,
         interaction: Interaction,
@@ -873,7 +1146,10 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         amount = max(
             0,
-            min(amount, 5)
+            min(
+                amount,
+                5
+            )
         )
 
         def processor(img):
@@ -899,6 +1175,9 @@ class Video(commands.GroupCog, group_name="video"):
         name="sharpen",
         description="Sharpen a video"
     )
+    @app_commands.describe(
+        amount="Sharpen amount"
+    )
     async def sharpen(
         self,
         interaction: Interaction,
@@ -908,7 +1187,10 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         amount = max(
             1,
-            min(amount, 10)
+            min(
+                amount,
+                10
+            )
         )
 
         def processor(img):
@@ -935,6 +1217,9 @@ class Video(commands.GroupCog, group_name="video"):
         name="contrast",
         description="Change the contrast of a video"
     )
+    @app_commands.describe(
+        amount="Contrast amount"
+    )
     async def contrast(
         self,
         interaction: Interaction,
@@ -944,7 +1229,10 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         amount = max(
             0,
-            min(amount, 5)
+            min(
+                amount,
+                5
+            )
         )
 
         def processor(img):
@@ -975,13 +1263,13 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         await interaction.response.defer()
 
-        media_url = await self.get_media_url(
+        attachment, media_url = await self.get_media(
             interaction,
             media,
             url
         )
 
-        if not media_url:
+        if not attachment and not media_url:
             return await self.send_error(
                 interaction,
                 "Missing Video ⚠️",
@@ -991,9 +1279,15 @@ class Video(commands.GroupCog, group_name="video"):
         temp_dir = tempfile.mkdtemp()
 
         try:
+            extension = self.get_extension(
+                attachment,
+                media_url,
+                None
+            )
+
             input_path = os.path.join(
                 temp_dir,
-                "input"
+                f"input{extension}"
             )
 
             output_path = os.path.join(
@@ -1002,6 +1296,7 @@ class Video(commands.GroupCog, group_name="video"):
             )
 
             success, error = await self.download_media(
+                attachment,
                 media_url,
                 input_path
             )
@@ -1024,36 +1319,61 @@ class Video(commands.GroupCog, group_name="video"):
                     error
                 )
 
-            process = await asyncio.create_subprocess_exec(
+            command = [
                 "ffmpeg",
                 "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
                 "-i",
                 input_path,
                 "-t",
                 str(self.MAX_VIDEO_DURATION),
                 "-vf",
                 (
-                    f"fps={self.MAX_VIDEO_FPS},"
+                    f"fps={min(self.MAX_VIDEO_FPS, 10)},"
                     "scale=640:640:"
                     "force_original_aspect_ratio=decrease,"
-                    "pad=640:640:(ow-iw)/2:(oh-ih)/2"
+                    "pad=640:640:(ow-iw)/2:(oh-ih)/2,"
+                    "split[s0][s1];"
+                    "[s0]palettegen=stats_mode=diff[p];"
+                    "[s1][p]paletteuse=dither=sierra2_4a"
                 ),
                 "-frames:v",
                 str(self.MAX_GIF_FRAMES),
                 "-loop",
                 "0",
-                output_path,
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.PIPE
+                output_path
+            ]
+
+            returncode, stdout, stderr = await self.run_process(
+                command,
+                stdout=asyncio.subprocess.DEVNULL
             )
 
-            await process.communicate()
+            if returncode != 0:
+                print(
+                    f"[GIF ERROR]\n{stderr}"
+                )
 
-            if process.returncode != 0:
                 return await self.send_error(
                     interaction,
                     "Conversion Error 🚫",
                     "I couldn't convert that video to a GIF."
+                )
+
+            if not os.path.exists(output_path):
+                return await self.send_error(
+                    interaction,
+                    "Conversion Error 🚫",
+                    "No GIF was created."
+                )
+
+            if os.path.getsize(output_path) > self.MAX_OUTPUT_SIZE:
+                return await self.send_error(
+                    interaction,
+                    "Output Too Large 🚫",
+                    "The generated GIF is too large."
                 )
 
             embed = discord.Embed(
@@ -1087,6 +1407,11 @@ class Video(commands.GroupCog, group_name="video"):
         name="caption",
         description="Add a caption to a video"
     )
+    @app_commands.describe(
+        media="The video",
+        text="Caption text",
+        url="A direct video URL"
+    )
     async def caption(
         self,
         interaction: Interaction,
@@ -1103,13 +1428,13 @@ class Video(commands.GroupCog, group_name="video"):
 
         await interaction.response.defer()
 
-        media_url = await self.get_media_url(
+        attachment, media_url = await self.get_media(
             interaction,
             media,
             url
         )
 
-        if not media_url:
+        if not attachment and not media_url:
             return await self.send_error(
                 interaction,
                 "Missing Video ⚠️",
@@ -1119,9 +1444,15 @@ class Video(commands.GroupCog, group_name="video"):
         temp_dir = tempfile.mkdtemp()
 
         try:
+            extension = self.get_extension(
+                attachment,
+                media_url,
+                None
+            )
+
             input_path = os.path.join(
                 temp_dir,
-                "input"
+                f"input{extension}"
             )
 
             frames_dir = os.path.join(
@@ -1150,6 +1481,7 @@ class Video(commands.GroupCog, group_name="video"):
             )
 
             success, error = await self.download_media(
+                attachment,
                 media_url,
                 input_path
             )
@@ -1186,127 +1518,124 @@ class Video(commands.GroupCog, group_name="video"):
                 )
 
             frame_files = sorted(
-                os.listdir(
-                    frames_dir
-                )
+                filename
+                for filename in os.listdir(frames_dir)
+                if filename.lower().endswith(".jpg")
             )
 
-            for index, frame_file in enumerate(
-                frame_files
-            ):
-                frame = Image.open(
-                    os.path.join(
-                        frames_dir,
-                        frame_file
+            for index, frame_file in enumerate(frame_files):
+                frame = None
+                output = None
+
+                try:
+                    frame = Image.open(
+                        os.path.join(
+                            frames_dir,
+                            frame_file
+                        )
+                    ).convert("RGBA")
+
+                    width, height = frame.size
+
+                    font_size = max(
+                        24,
+                        min(
+                            64,
+                            width // 10
+                        )
                     )
-                ).convert(
-                    "RGBA"
-                )
 
-                width, height = frame.size
-
-                font_size = max(
-                    24,
-                    min(
-                        64,
-                        width // 10
+                    font = ImageFont.truetype(
+                        "C:/Windows/Fonts/impact.ttf",
+                        font_size
                     )
-                )
 
-                font = ImageFont.truetype(
-                    "C:/Windows/Fonts/impact.ttf",
-                    font_size
-                )
-
-                chars_per_line = max(
-                    8,
-                    width // max(
-                        1,
-                        font_size // 2
+                    chars_per_line = max(
+                        8,
+                        width // max(
+                            1,
+                            font_size // 2
+                        )
                     )
-                )
 
-                wrapped = textwrap.fill(
-                    text,
-                    width=chars_per_line
-                )
+                    wrapped = textwrap.fill(
+                        text,
+                        width=chars_per_line
+                    )
 
-                draw = ImageDraw.Draw(
-                    frame
-                )
+                    draw = ImageDraw.Draw(
+                        frame
+                    )
 
-                bbox = draw.multiline_textbbox(
-                    (0, 0),
-                    wrapped,
-                    font=font,
-                    align="center"
-                )
-
-                text_width = (
-                    bbox[2] -
-                    bbox[0]
-                )
-
-                text_height = (
-                    bbox[3] -
-                    bbox[1]
-                )
-
-                padding = font_size // 2
-
-                caption_height = (
-                    text_height +
-                    padding * 2
-                )
-
-                if caption_height % 2:
-                    caption_height += 1
-
-                output = Image.new(
-                    "RGBA",
-                    (
-                        width,
-                        height + caption_height
-                    ),
-                    "white"
-                )
-
-                output.paste(
-                    frame,
-                    (0, caption_height)
-                )
-
-                x = (
-                    width -
-                    text_width
-                ) / 2
-
-                y = (
-                    (caption_height - text_height) / 2
-                ) - bbox[1]
-
-                with Pilmoji(output) as pilmoji:
-                    pilmoji.text(
-                        (x, y),
+                    bbox = draw.multiline_textbbox(
+                        (0, 0),
                         wrapped,
-                        fill="black",
                         font=font,
                         align="center"
                     )
 
-                output.convert(
-                    "RGB"
-                ).save(
-                    os.path.join(
-                        output_dir,
-                        f"frame_{index + 1:04d}.jpg"
-                    ),
-                    "JPEG",
-                    quality=88
-                )
+                    text_width = bbox[2] - bbox[0]
+                    text_height = bbox[3] - bbox[1]
 
-                frame.close()
-                output.close()
+                    padding = font_size // 2
+
+                    caption_height = (
+                        text_height +
+                        padding * 2
+                    )
+
+                    if caption_height % 2:
+                        caption_height += 1
+
+                    output = Image.new(
+                        "RGBA",
+                        (
+                            width,
+                            height + caption_height
+                        ),
+                        "white"
+                    )
+
+                    output.paste(
+                        frame,
+                        (0, caption_height)
+                    )
+
+                    x = (
+                        width -
+                        text_width
+                    ) / 2
+
+                    y = (
+                        (caption_height - text_height) / 2
+                    ) - bbox[1]
+
+                    with Pilmoji(output) as pilmoji:
+                        pilmoji.text(
+                            (x, y),
+                            wrapped,
+                            fill="black",
+                            font=font,
+                            align="center"
+                        )
+
+                    output.convert(
+                        "RGB"
+                    ).save(
+                        os.path.join(
+                            output_dir,
+                            f"frame_{index + 1:04d}.jpg"
+                        ),
+                        "JPEG",
+                        quality=86
+                    )
+
+                finally:
+                    if frame:
+                        frame.close()
+
+                    if output:
+                        output.close()
 
             info = await self.get_video_info(
                 input_path
@@ -1364,13 +1693,13 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         await interaction.response.defer()
 
-        media_url = await self.get_media_url(
+        attachment, media_url = await self.get_media(
             interaction,
             media,
             url
         )
 
-        if not media_url:
+        if not attachment and not media_url:
             return await self.send_error(
                 interaction,
                 "Missing Video ⚠️",
@@ -1380,9 +1709,15 @@ class Video(commands.GroupCog, group_name="video"):
         temp_dir = tempfile.mkdtemp()
 
         try:
+            extension = self.get_extension(
+                attachment,
+                media_url,
+                None
+            )
+
             input_path = os.path.join(
                 temp_dir,
-                "input"
+                f"input{extension}"
             )
 
             output_dir = os.path.join(
@@ -1396,6 +1731,7 @@ class Video(commands.GroupCog, group_name="video"):
             )
 
             success, error = await self.download_media(
+                attachment,
                 media_url,
                 input_path
             )
@@ -1432,9 +1768,9 @@ class Video(commands.GroupCog, group_name="video"):
                 )
 
             frame_files = sorted(
-                os.listdir(
-                    output_dir
-                )
+                filename
+                for filename in os.listdir(output_dir)
+                if filename.lower().endswith(".jpg")
             )
 
             if not frame_files:
@@ -1462,6 +1798,13 @@ class Video(commands.GroupCog, group_name="video"):
                         ),
                         frame
                     )
+
+            if os.path.getsize(zip_path) > self.MAX_OUTPUT_SIZE:
+                return await self.send_error(
+                    interaction,
+                    "Output Too Large 🚫",
+                    "The generated frame archive is too large."
+                )
 
             embed = discord.Embed(
                 title="📦 Extracted Frames",
@@ -1506,13 +1849,13 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         await interaction.response.defer()
 
-        media_url = await self.get_media_url(
+        attachment, media_url = await self.get_media(
             interaction,
             media,
             url
         )
 
-        if not media_url:
+        if not attachment and not media_url:
             return await self.send_error(
                 interaction,
                 "Missing Video ⚠️",
@@ -1522,9 +1865,15 @@ class Video(commands.GroupCog, group_name="video"):
         temp_dir = tempfile.mkdtemp()
 
         try:
+            extension = self.get_extension(
+                attachment,
+                media_url,
+                None
+            )
+
             input_path = os.path.join(
                 temp_dir,
-                "input"
+                f"input{extension}"
             )
 
             frames_dir = os.path.join(
@@ -1543,6 +1892,7 @@ class Video(commands.GroupCog, group_name="video"):
             )
 
             success, error = await self.download_media(
+                attachment,
                 media_url,
                 input_path
             )
@@ -1594,53 +1944,60 @@ class Video(commands.GroupCog, group_name="video"):
                 )
 
             frame_files = sorted(
-                os.listdir(
-                    frames_dir
-                )
+                filename
+                for filename in os.listdir(frames_dir)
+                if filename.lower().endswith(".jpg")
             )
 
             frames = []
 
-            for frame_file in frame_files:
-                frame = Image.open(
-                    os.path.join(
-                        frames_dir,
-                        frame_file
+            try:
+                for frame_file in frame_files:
+                    frame = Image.open(
+                        os.path.join(
+                            frames_dir,
+                            frame_file
+                        )
+                    ).convert("RGB")
+
+                    frames.append(
+                        frame.copy()
                     )
-                ).convert(
-                    "RGBA"
+
+                    frame.close()
+
+                if not frames:
+                    return await self.send_error(
+                        interaction,
+                        "Extraction Error 🚫",
+                        "Couldn't extract any frames."
+                    )
+
+                boomerang_frames = (
+                    frames +
+                    frames[-2::-1]
                 )
 
-                frames.append(
-                    frame.copy()
+                boomerang_frames[0].save(
+                    output_path,
+                    format="GIF",
+                    save_all=True,
+                    append_images=boomerang_frames[1:],
+                    duration=duration,
+                    loop=0,
+                    disposal=2
                 )
 
-                frame.close()
+            finally:
+                for frame in frames:
+                    frame.close()
 
-            if not frames:
+            if os.path.getsize(output_path) > self.MAX_OUTPUT_SIZE:
                 return await self.send_error(
                     interaction,
-                    "Error ❌",
-                    "Couldn't extract any frames."
+                    "Output Too Large 🚫",
+                    "The generated boomerang is too large."
                 )
-
-            boomerang_frames = (
-                frames +
-                frames[-2::-1]
-            )
-
-            boomerang_frames[0].save(
-                output_path,
-                format="GIF",
-                save_all=True,
-                append_images=boomerang_frames[1:],
-                duration=duration,
-                loop=0,
-                disposal=2
-            )
-
-            for frame in frames:
-                frame.close()
 
             embed = discord.Embed(
                 title="🔁 Boomerang Created",
@@ -1847,7 +2204,13 @@ class Video(commands.GroupCog, group_name="video"):
 
     @video_1.command(
         name="rotate",
-        description="Change the Rotation of a video"
+        description="Change the rotation of a video"
+    )
+    @app_commands.describe(
+        angle="Rotation angle",
+        media="The video",
+        url="A direct video URL",
+        clockwise="Rotate clockwise"
     )
     async def rotate(
         self,
@@ -1858,30 +2221,33 @@ class Video(commands.GroupCog, group_name="video"):
         clockwise: bool = True
     ):
         if clockwise:
-            angle = -angle
+            actual_angle = -angle
+            direction = "Clockwise"
+        else:
+            actual_angle = angle
+            direction = "Counter-clockwise"
 
         def processor(img):
             return img.rotate(
-                angle=angle
+                actual_angle,
+                expand=False
             )
-
-        clockwiseStr = "Counter-clockwise"
-
-        if clockwise:
-            clockwiseStr = "Clockwise"
 
         await self.process_effect(
             interaction,
             media,
             url,
             processor,
-            f"Rotate Video 🔄 {clockwiseStr} (Angle: {abs(angle)})",
+            (
+                f"Rotate Video 🔄 {direction} "
+                f"(Angle: {abs(angle)})"
+            ),
             "rotate.mp4"
         )
 
     @video_1.command(
         name="flip",
-        description="Flips a video"
+        description="Flip a video"
     )
     async def flip(
         self,
@@ -1891,7 +2257,7 @@ class Video(commands.GroupCog, group_name="video"):
     ):
         def processor(img):
             return img.transpose(
-                method=Image.Transpose.FLIP_LEFT_RIGHT
+                Image.Transpose.FLIP_LEFT_RIGHT
             )
 
         await self.process_effect(
@@ -1902,6 +2268,517 @@ class Video(commands.GroupCog, group_name="video"):
             "Flipped Video 🔄",
             "flipped.mp4"
         )
+
+    @app_commands.command(
+        name="globe",
+        description="Project a video onto a spinning sphere"
+    )
+    @app_commands.describe(
+        media="The video to wrap around the globe",
+        url="A direct video URL"
+    )
+    async def globe(
+        self,
+        interaction: discord.Interaction,
+        media: discord.Attachment = None,
+        url: str = None
+    ):
+        await interaction.response.defer()
+
+        attachment, media_url = await self.get_media(
+            interaction,
+            media,
+            url
+        )
+
+        if not attachment and not media_url:
+            return await self.send_error(
+                interaction,
+                "Missing Video ⚠️",
+                "Upload, reply, or provide a video URL."
+            )
+
+        temp_dir = tempfile.mkdtemp()
+
+        try:
+            extension = self.get_extension(
+                attachment,
+                media_url,
+                None
+            )
+
+            input_path = os.path.join(
+                temp_dir,
+                f"input{extension}"
+            )
+
+            output_path = os.path.join(
+                temp_dir,
+                "globe.mp4"
+            )
+
+            success, error = await self.download_media(
+                attachment,
+                media_url,
+                input_path
+            )
+
+            if not success:
+                return await self.send_error(
+                    interaction,
+                    "Download Error 🚫",
+                    error
+                )
+
+            valid, error = await self.validate_video(
+                input_path
+            )
+
+            if not valid:
+                return await self.send_error(
+                    interaction,
+                    "Video Rejected 🚫",
+                    error
+                )
+
+            input_process = await asyncio.create_subprocess_exec(
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-i",
+                input_path,
+                "-t",
+                str(self.MAX_VIDEO_DURATION),
+                "-vf",
+                (
+                    f"fps={self.MAX_VIDEO_FPS},"
+                    "scale=512:256:"
+                    "force_original_aspect_ratio=decrease,"
+                    "pad=512:256:(ow-iw)/2:(oh-ih)/2"
+                ),
+                "-f",
+                "rawvideo",
+                "-pix_fmt",
+                "rgb24",
+                "pipe:1",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+
+            encoder = await asyncio.create_subprocess_exec(
+                "ffmpeg",
+                "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-f",
+                "rawvideo",
+                "-pix_fmt",
+                "rgba",
+                "-s",
+                "256x256",
+                "-r",
+                str(self.MAX_VIDEO_FPS),
+                "-i",
+                "pipe:0",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "veryfast",
+                "-crf",
+                "28",
+                "-pix_fmt",
+                "yuv420p",
+                "-movflags",
+                "+faststart",
+                "-an",
+                output_path,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.PIPE
+            )
+
+            frame_size = (
+                512 *
+                256 *
+                3
+            )
+
+            frame_number = 0
+
+            try:
+                while True:
+                    raw_frame = await input_process.stdout.read(
+                        frame_size
+                    )
+
+                    if not raw_frame:
+                        break
+
+                    if len(raw_frame) != frame_size:
+                        print(
+                            "[VIDEO GLOBE] Incomplete raw frame received."
+                        )
+                        break
+
+                    texture = Image.frombytes(
+                        "RGB",
+                        (
+                            512,
+                            256
+                        ),
+                        raw_frame
+                    )
+
+                    rotation = (
+                        frame_number /
+                        self.MAX_VIDEO_FPS
+                    ) * 0.35
+
+                    globe_frame = self.render_globe(
+                        texture,
+                        256,
+                        256,
+                        rotation
+                    )
+
+                    try:
+                        encoder.stdin.write(
+                            globe_frame.tobytes()
+                        )
+
+                        await encoder.stdin.drain()
+
+                    except (BrokenPipeError, ConnectionResetError):
+                        break
+
+                    finally:
+                        texture.close()
+                        globe_frame.close()
+
+                    frame_number += 1
+
+                    if frame_number >= self.MAX_FRAMES:
+                        break
+
+            finally:
+                if encoder.stdin:
+                    try:
+                        encoder.stdin.close()
+                    except Exception:
+                        pass
+
+            await input_process.wait()
+            await encoder.wait()
+
+            input_error = (
+                await input_process.stderr.read()
+            ).decode(
+                errors="replace"
+            )
+
+            encoder_error = (
+                await encoder.stderr.read()
+            ).decode(
+                errors="replace"
+            )
+
+            if input_process.returncode != 0:
+                print(
+                    f"[VIDEO GLOBE INPUT ERROR]\n{input_error}"
+                )
+
+                return await self.send_error(
+                    interaction,
+                    "Processing Error 🚫",
+                    "FFmpeg couldn't decode that video."
+                )
+
+            if encoder.returncode != 0:
+                print(
+                    f"[VIDEO GLOBE ENCODER ERROR]\n{encoder_error}"
+                )
+
+                return await self.send_error(
+                    interaction,
+                    "Encoding Error 🚫",
+                    "FFmpeg couldn't create the globe video."
+                )
+
+            if frame_number == 0:
+                return await self.send_error(
+                    interaction,
+                    "Processing Error 🚫",
+                    "No video frames could be processed."
+                )
+
+            if not os.path.exists(output_path):
+                return await self.send_error(
+                    interaction,
+                    "Processing Error 🚫",
+                    "No output video was created."
+                )
+
+            output_size = os.path.getsize(
+                output_path
+            )
+
+            if output_size > self.MAX_OUTPUT_SIZE:
+                return await self.send_error(
+                    interaction,
+                    "Output Too Large 🚫",
+                    (
+                        "The generated video is too large.\n\n"
+                        f"The maximum output size is **"
+                        f"{self.MAX_OUTPUT_SIZE // 1024 // 1024} MB**."
+                    )
+                )
+
+            embed = discord.Embed(
+                title="🌎 Video Globe",
+                description=(
+                    "Your video has been projected onto "
+                    "a spinning globe."
+                ),
+                color=get_success_colour()
+            )
+
+            embed.add_field(
+                name="🎥 Playback",
+                value=(
+                    "The original video plays while "
+                    "the globe spins."
+                ),
+                inline=False
+            )
+
+            await interaction.followup.send(
+                embed=embed,
+                file=discord.File(
+                    output_path,
+                    filename="video-globe.mp4"
+                )
+            )
+
+        except Exception as e:
+            print(
+                f"[VIDEO GLOBE] "
+                f"{type(e).__name__}: {e}"
+            )
+
+            if interaction.response.is_done():
+                await interaction.followup.send(
+                    embed=discord.Embed(
+                        title="🚫 Video Globe Failed",
+                        description=(
+                            "I couldn't create the "
+                            "spinning video globe."
+                        ),
+                        color=get_fail_colour()
+                    )
+                )
+
+        finally:
+            shutil.rmtree(
+                temp_dir,
+                ignore_errors=True
+            )
+
+    @staticmethod
+    def prepare_texture(image):
+        width, height = image.size
+
+        ratio = width / height
+
+        if ratio < 2:
+            new_width = int(
+                height * 2
+            )
+
+            canvas = Image.new(
+                "RGB",
+                (
+                    new_width,
+                    height
+                )
+            )
+
+            canvas.paste(
+                image,
+                (
+                    (new_width - width) // 2,
+                    0
+                )
+            )
+
+            image = canvas
+
+        elif ratio > 2:
+            new_height = int(
+                width / 2
+            )
+
+            canvas = Image.new(
+                "RGB",
+                (
+                    width,
+                    new_height
+                )
+            )
+
+            canvas.paste(
+                image,
+                (
+                    0,
+                    (new_height - height) // 2
+                )
+            )
+
+            image = canvas
+
+        return image.resize(
+            (
+                512,
+                256
+            ),
+            Image.Resampling.LANCZOS
+        )
+
+    @staticmethod
+    def render_globe(
+        texture,
+        width,
+        height,
+        rotation
+    ):
+        frame = Image.new(
+            "RGBA",
+            (
+                width,
+                height
+            ),
+            (
+                0,
+                0,
+                0,
+                0
+            )
+        )
+
+        pixels = frame.load()
+        texture_pixels = texture.load()
+
+        radius = width * 0.43
+
+        center_x = width / 2
+        center_y = height / 2
+
+        for y in range(height):
+            dy = (
+                y -
+                center_y
+            ) / radius
+
+            if abs(dy) > 1:
+                continue
+
+            for x in range(width):
+                dx = (
+                    x -
+                    center_x
+                ) / radius
+
+                distance = (
+                    dx * dx +
+                    dy * dy
+                )
+
+                if distance > 1:
+                    continue
+
+                dz = math.sqrt(
+                    1 -
+                    distance
+                )
+
+                longitude = math.atan2(
+                    dx,
+                    dz
+                )
+
+                latitude = math.asin(
+                    -dy
+                )
+
+                longitude += (
+                    rotation *
+                    math.tau
+                )
+
+                u = (
+                    longitude /
+                    math.tau +
+                    0.5
+                ) % 1.0
+
+                v = (
+                    0.5 -
+                    latitude /
+                    math.pi
+                )
+
+                tx = int(
+                    u * 511
+                ) % 512
+
+                ty = max(
+                    0,
+                    min(
+                        255,
+                        int(
+                            v * 255
+                        )
+                    )
+                )
+
+                r, g, b = texture_pixels[
+                    tx,
+                    ty
+                ]
+
+                light = (
+                    0.45 +
+                    0.55 *
+                    max(
+                        0,
+                        dz
+                    )
+                )
+
+                r = int(
+                    r *
+                    light
+                )
+
+                g = int(
+                    g *
+                    light
+                )
+
+                b = int(
+                    b *
+                    light
+                )
+
+                pixels[x, y] = (
+                    r,
+                    g,
+                    b,
+                    255
+                )
+
+        return frame
 
 async def setup(bot):
     await bot.add_cog(
