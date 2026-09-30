@@ -1692,6 +1692,152 @@ class Images(commands.GroupCog, group_name="image"):
 
         return frame
 
+    @image_1.command(
+        name="ascii",
+        description="Turn an image into ASCII art"
+    )
+    @app_commands.describe(
+        image="The image to convert into ASCII art",
+        url="A direct URL to an image"
+    )
+    async def ascii(
+        self,
+        interaction: discord.Interaction,
+        image: discord.Attachment = None,
+        url: str = None
+    ):
+        await interaction.response.defer()
+
+        if image is None and not url:
+            embed = discord.Embed(
+                title="ASCII Conversion Failed 🚫",
+                description="Please upload an image or provide an image URL.",
+                colour=get_fail_colour()
+            )
+            await interaction.followup.send(embed=embed)
+            return
+
+        if image is not None and url:
+            embed = discord.Embed(
+                title="ASCII Conversion Failed 🚫",
+                description="Please provide either an uploaded image or a URL, not both.",
+                colour=get_fail_colour()
+            )
+            await interaction.followup.send(embed=embed)
+            return
+
+        try:
+            if image is not None:
+                if not image.content_type or not image.content_type.startswith("image/"):
+                    embed = discord.Embed(
+                        title="ASCII Conversion Failed 🚫",
+                        description="Please upload a valid image.",
+                        colour=get_fail_colour()
+                    )
+                    await interaction.followup.send(embed=embed)
+                    return
+
+                data = await image.read()
+                original_name = image.filename
+                thumbnail_url = image.url
+
+            else:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        url,
+                        timeout=aiohttp.ClientTimeout(total=15)
+                    ) as response:
+                        if response.status != 200:
+                            raise ValueError("Failed to download image")
+
+                        content_type = response.headers.get("Content-Type", "").lower()
+
+                        if not content_type.startswith("image/"):
+                            raise ValueError("URL does not point to an image")
+
+                        data = await response.read()
+
+                parsed_url = url.split("?", 1)[0].split("#", 1)[0]
+                original_name = parsed_url.rstrip("/").split("/")[-1]
+
+                if not original_name or "." not in original_name:
+                    original_name = "image"
+
+                thumbnail_url = url
+
+            img = Image.open(io.BytesIO(data))
+            img = img.convert("L")
+
+            max_width = 120
+
+            width, height = img.size
+            aspect_ratio = height / width
+
+            new_height = max(
+                1,
+                int(max_width * aspect_ratio * 0.5)
+            )
+
+            img = img.resize(
+                (max_width, new_height),
+                Image.Resampling.LANCZOS
+            )
+
+            characters = "@#%$S?*^+;:,. "
+
+            pixels = list(img.getdata())
+
+            ascii_art = ""
+
+            for y in range(img.height):
+                for x in range(img.width):
+                    pixel = pixels[y * img.width + x]
+
+                    index = int(
+                        pixel / 256 * len(characters)
+                    )
+
+                    if index >= len(characters):
+                        index = len(characters) - 1
+
+                    ascii_art += characters[index]
+
+                ascii_art += "\n"
+
+            ascii_art = ascii_art.rstrip()
+
+            base_name = original_name.rsplit(".", 1)[0]
+
+            file = discord.File(
+                io.BytesIO(ascii_art.encode("utf-8")),
+                filename=f"{base_name}_ascii.txt"
+            )
+
+            embed = discord.Embed(
+                title="ASCII Art 🖼️",
+                description="Converted image into ASCII text.",
+                colour=get_success_colour()
+            )
+
+            embed.set_thumbnail(url=thumbnail_url)
+            embed.set_footer(
+                text=f"Original image: {original_name}"
+            )
+
+            await interaction.followup.send(
+                embed=embed,
+                file=file
+            )
+
+        except Exception:
+            embed = discord.Embed(
+                title="ASCII Conversion Failed 🚫",
+                description="I couldn't download or convert that image.",
+                colour=get_fail_colour()
+            )
+
+            await interaction.followup.send(embed=embed)
+
 async def setup(bot):
     await bot.add_cog(
         Images(bot)
