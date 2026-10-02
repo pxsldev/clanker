@@ -3,7 +3,6 @@ import datetime
 from discord.ext import commands, tasks
 
 THEMES = {
-
     "halloween": {
         "success": discord.Color.orange(),
         "fail": discord.Color.purple(),
@@ -43,7 +42,6 @@ THEMES = {
         "banner": "assets/default/banner.png",
         "name": "Clanker",
     },
-
 }
 
 def get_theme():
@@ -60,25 +58,22 @@ def get_theme():
 
     return "default"
 
-cached_theme = get_theme()
-
 def get_success_colour():
-    return THEMES[cached_theme]["success"]
+    return THEMES[get_theme()]["success"]
 
 def get_fail_colour():
-    return THEMES[cached_theme]["fail"]
+    return THEMES[get_theme()]["fail"]
 
 def get_avatar():
-    return THEMES[cached_theme]["avatar"]
+    return THEMES[get_theme()]["avatar"]
 
 def get_banner():
-    return THEMES[cached_theme]["banner"]
+    return THEMES[get_theme()]["banner"]
 
 def get_name():
-    return THEMES[cached_theme]["name"]
+    return THEMES[get_theme()]["name"]
 
 class Theming(commands.Cog):
-
     def __init__(self, bot):
         self.bot = bot
         self.current_date = None
@@ -89,8 +84,6 @@ class Theming(commands.Cog):
         self.update_theme.cancel()
 
     async def apply_theme(self):
-        global cached_theme
-
         now = datetime.datetime.now(datetime.timezone.utc)
         date = now.date()
         theme = get_theme()
@@ -100,7 +93,6 @@ class Theming(commands.Cog):
         if self.current_date == date and not theme_changed:
             return
 
-        cached_theme = theme
         self.current_date = date
 
         name = THEMES[theme]["name"]
