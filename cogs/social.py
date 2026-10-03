@@ -1285,7 +1285,8 @@ class Social(commands.GroupCog, group_name="social"):
             "peatey", 
             "lamby kins loves you", 
             "lamby kins",
-            "google is free"
+            "google is free",
+            "raerraw"
         ]
         
         embed = discord.Embed(
