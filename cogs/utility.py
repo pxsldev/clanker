@@ -1,5 +1,6 @@
 # im a utilitlituy file!
 
+import os
 from discord import app_commands, Interaction
 from discord.ext import commands
 import discord
@@ -17,6 +18,10 @@ from datetime import datetime, timezone
 from mathparse import mathparse
 from cogs.theming import get_fail_colour, get_success_colour
 from dateutil.easter import easter
+import yt_dlp
+import tempfile
+
+MAX_FILE_SIZE = 10 * 1024 * 1024
 
 class Utility(commands.GroupCog, group_name="utility"):
     def __init__(self, bot):
@@ -2161,6 +2166,119 @@ class Utility(commands.GroupCog, group_name="utility"):
         await interaction.response.send_message(
             embed=embed
         )
+
+    @group_2.command(
+        name="download",
+        description="Download a video or audio file"
+    )
+    @app_commands.describe(
+        url="The URL to download"
+    )
+    async def download(
+        self,
+        interaction: discord.Interaction,
+        url: str
+    ):
+        await interaction.response.defer()
+
+        temp_dir = tempfile.mkdtemp()
+
+        try:
+            output_template = os.path.join(
+                temp_dir,
+                "%(title).100s.%(ext)s"
+            )
+
+            ydl_opts = {
+                "outtmpl": output_template,
+                "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+                "merge_output_format": "mp4",
+                "noplaylist": True,
+                "quiet": True,
+                "no_warnings": True,
+            }
+
+            loop = asyncio.get_running_loop()
+
+            def download_media():
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    return info
+
+            info = await loop.run_in_executor(
+                None,
+                download_media
+            )
+
+            files = [
+                os.path.join(temp_dir, file)
+                for file in os.listdir(temp_dir)
+            ]
+
+            if not files:
+                raise RuntimeError("No media file was produced.")
+
+            file_path = files[0]
+
+            file_size = os.path.getsize(file_path)
+
+            if file_size > MAX_FILE_SIZE:
+                embed = discord.Embed(
+                    title="Download Failed 🚫",
+                    description=(
+                        "The downloaded file is too large to upload to Discord."
+                    ),
+                    color=get_fail_colour()
+                )
+
+                await interaction.followup.send(embed=embed)
+                return
+
+            title = info.get("title", "Downloaded media")
+
+            embed = discord.Embed(
+                title="Download Complete 📥",
+                description=f"**{title}**",
+                color=get_success_colour()
+            )
+
+            await interaction.followup.send(
+                embed=embed,
+                file=discord.File(file_path)
+            )
+
+        except yt_dlp.utils.DownloadError:
+            embed = discord.Embed(
+                title="Download Failed 🚫",
+                description=(
+                    "I couldn't download media from that URL."
+                ),
+                color=get_fail_colour()
+            )
+
+            await interaction.followup.send(embed=embed)
+
+        except Exception as e:
+            print(f"Media download error: {e}")
+
+            embed = discord.Embed(
+                title="Download Failed 🚫",
+                description=(
+                    "Something went wrong while downloading the media."
+                ),
+                color=get_fail_colour()
+            )
+
+            await interaction.followup.send(embed=embed)
+
+        finally:
+            try:
+                for file in os.listdir(temp_dir):
+                    os.remove(os.path.join(temp_dir, file))
+
+                os.rmdir(temp_dir)
+            except Exception:
+                pass
 
 async def setup(bot):
     await bot.add_cog(Utility(bot))
